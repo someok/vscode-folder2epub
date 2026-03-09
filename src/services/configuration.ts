@@ -8,6 +8,9 @@ export interface ConfigureDefaultAuthorResult {
   author: string
 }
 
+/**
+ * 读取当前 Workspace 级别保存的默认作者。
+ */
 export function getDefaultAuthor(): string {
   const inspectedValue = vscode.workspace
     .getConfiguration(CONFIGURATION_SECTION)
@@ -16,6 +19,9 @@ export function getDefaultAuthor(): string {
   return inspectedValue?.workspaceValue?.trim() ?? ''
 }
 
+/**
+ * 将默认作者写入当前 Workspace 配置。
+ */
 export async function setDefaultAuthor(author: string): Promise<void> {
   if (!vscode.workspace.workspaceFile && !vscode.workspace.workspaceFolders?.length) {
     throw new Error('请先打开一个 Workspace，然后再配置默认作者。')
@@ -26,6 +32,9 @@ export async function setDefaultAuthor(author: string): Promise<void> {
     .update(DEFAULT_AUTHOR_KEY, author.trim(), vscode.ConfigurationTarget.Workspace)
 }
 
+/**
+ * 弹出输入框交互式配置默认作者，并返回本次配置结果。
+ */
 export async function configureDefaultAuthorInteractively(): Promise<ConfigureDefaultAuthorResult> {
   const currentAuthor = getDefaultAuthor()
   const inputValue = await vscode.window.showInputBox({
@@ -46,6 +55,7 @@ export async function configureDefaultAuthorInteractively(): Promise<ConfigureDe
   const author = inputValue.trim()
   await setDefaultAuthor(author)
 
+  // 这里顺手返回最新值，便于调用方直接继续初始化流程而无需再次读取配置。
   if (author) {
     void vscode.window.showInformationMessage(`已更新当前 Workspace 默认作者：${author}`)
   }

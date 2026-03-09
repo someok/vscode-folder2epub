@@ -5,6 +5,9 @@ import YAML from 'yaml'
 
 import { EPUB_CONFIG_FILENAME, exists } from './folderMatcher'
 
+/**
+ * 自当前目录向上查找 `__epub.yml`，解析最终输出目录。
+ */
 export async function resolveOutputDir(folderPath: string): Promise<string> {
   let currentDir = folderPath
 
@@ -15,6 +18,7 @@ export async function resolveOutputDir(folderPath: string): Promise<string> {
       const configValue = YAML.parse(configText)
 
       if (configValue && typeof configValue === 'object') {
+        // `saveTo` 允许写相对路径，解析时始终以配置文件所在目录为基准。
         const saveTo = (configValue as Record<string, unknown>).saveTo
         if (typeof saveTo === 'string' && saveTo.trim()) {
           return path.isAbsolute(saveTo)

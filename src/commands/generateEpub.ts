@@ -9,6 +9,9 @@ import { hasMetadataFile, resolveFolderTarget } from '../services/folderMatcher'
 import { formatBookFileName, readMetadata } from '../services/metadata'
 import { resolveOutputDir } from '../services/outputResolver'
 
+/**
+ * 注册“生成 epub”命令，串联 metadata 读取、内容扫描和 EPUB 打包流程。
+ */
 export function registerGenerateEpubCommand(): vscode.Disposable {
   return vscode.commands.registerCommand('folder2epub.generateEpub', async (uri?: vscode.Uri) => {
     try {
@@ -26,6 +29,7 @@ export function registerGenerateEpubCommand(): vscode.Disposable {
           cancellable: false,
         },
         async (progress) => {
+          // 生成过程拆成几个明显阶段，便于在 VS Code 通知中给出可感知的进度反馈。
           progress.report({ message: '读取 metadata.yml' })
           const metadata = await readMetadata(target.fsPath)
 

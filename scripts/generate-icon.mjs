@@ -32,6 +32,9 @@ catch (error) {
   process.exitCode = 1
 }
 
+/**
+ * 解析命令行参数并派发对应的图标生成流程。
+ */
 function main() {
   const outputType = parseOutputType(process.argv.slice(2))
   const outputPath = resolveOutputPath(outputType)
@@ -44,9 +47,13 @@ function main() {
   generatePngIcon(outputPath)
 }
 
+/**
+ * 生成 PNG 图标，基于像素缓冲区逐层绘制形状。
+ */
 function generatePngIcon(filePath) {
   pixels = new Uint8Array(width * height * 4)
 
+  // 整体图标按“背景 -> 主体 -> 高光细节”的顺序堆叠，便于控制覆盖关系。
   paintBackground()
   fillCircle(136, 136, 140, (_x, _y, coverage) => withCoverage(hex('#21466B'), coverage * 0.22))
   fillCircle(380, 384, 180, (_x, _y, coverage) => withCoverage(hex('#1E6A67'), coverage * 0.16))
@@ -107,6 +114,9 @@ function generatePngIcon(filePath) {
   writePng(filePath, width, height, pixels)
 }
 
+/**
+ * 绘制书页内部的文本行装饰。
+ */
 function drawPageLines() {
   const lines = [
     [168, 146, 60, 8],
@@ -122,6 +132,9 @@ function drawPageLines() {
   }
 }
 
+/**
+ * 使用简单抗锯齿覆盖率绘制圆形。
+ */
 function fillCircle(cx, cy, radius, shader) {
   const minX = Math.max(0, Math.floor(cx - radius - 1))
   const maxX = Math.min(width - 1, Math.ceil(cx + radius + 1))
@@ -141,6 +154,9 @@ function fillCircle(cx, cy, radius, shader) {
   }
 }
 
+/**
+ * 在像素缓冲区内填充任意多边形。
+ */
 function fillPolygon(points, shader) {
   const xs = points.map(([x]) => x)
   const ys = points.map(([, y]) => y)
@@ -160,6 +176,9 @@ function fillPolygon(points, shader) {
   }
 }
 
+/**
+ * 在像素缓冲区内填充圆角矩形。
+ */
 function fillRoundedRect(x, y, w, h, radius, shader) {
   const minX = Math.max(0, Math.floor(x - 1))
   const maxX = Math.min(width - 1, Math.ceil(x + w + 1))
@@ -176,6 +195,7 @@ function fillRoundedRect(x, y, w, h, radius, shader) {
       const dy = Math.abs(py + 0.5 - centerY) - halfHeight + radius
       const outsideX = Math.max(dx, 0)
       const outsideY = Math.max(dy, 0)
+      // 通过签名距离场近似边缘，获得比硬切更平滑的圆角效果。
       const signedDistance = Math.hypot(outsideX, outsideY) + Math.min(Math.max(dx, dy), 0) - radius
       const coverage = clamp(0.9 - signedDistance, 0, 1)
 
@@ -188,6 +208,9 @@ function fillRoundedRect(x, y, w, h, radius, shader) {
   }
 }
 
+/**
+ * 绘制背景渐变、暗角和细条纹纹理。
+ */
 function paintBackground() {
   for (let y = 0; y < height; y += 1) {
     for (let x = 0; x < width; x += 1) {
@@ -208,6 +231,9 @@ function paintBackground() {
   }
 }
 
+/**
+ * 按 alpha 混合规则把颜色叠加到目标像素上。
+ */
 function blendPixel(x, y, color) {
   if (color.a <= 0) {
     return
@@ -231,10 +257,16 @@ function blendPixel(x, y, color) {
   pixels[index + 3] = Math.round(outAlpha * 255)
 }
 
+/**
+ * 把数值限制在指定区间内。
+ */
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max)
 }
 
+/**
+ * 将十六进制颜色转换为 RGBA 对象。
+ */
 function hex(value) {
   const normalized = value.replace('#', '')
   return {
@@ -245,6 +277,9 @@ function hex(value) {
   }
 }
 
+/**
+ * 在线性空间内混合两种颜色。
+ */
 function mixColor(from, to, amount) {
   const t = clamp(amount, 0, 1)
   return {
@@ -255,10 +290,16 @@ function mixColor(from, to, amount) {
   }
 }
 
+/**
+ * 将区间内的值归一化到 0 到 1。
+ */
 function normalize(value, min, max) {
   return clamp((value - min) / (max - min), 0, 1)
 }
 
+/**
+ * 使用射线法判断点是否落在多边形内部。
+ */
 function pointInPolygon(x, y, points) {
   let inside = false
 
@@ -276,10 +317,16 @@ function pointInPolygon(x, y, points) {
   return inside
 }
 
+/**
+ * 计算某点相对圆心和半径的径向衰减系数。
+ */
 function radialFalloff(x, y, centerX, centerY, radius) {
   return clamp(1 - Math.hypot(x - centerX, y - centerY) / radius, 0, 1)
 }
 
+/**
+ * 解析 `-type` / `--type` 参数，决定生成 PNG 还是 SVG。
+ */
 function parseOutputType(args) {
   if (!args.length) {
     return 'png'
@@ -306,6 +353,9 @@ function parseOutputType(args) {
   throw new Error(`不支持的参数：${args.join(' ')}`)
 }
 
+/**
+ * 计算图标输出路径，统一写到项目 `media/` 目录。
+ */
 function resolveOutputPath(outputType) {
   const currentFilePath = fileURLToPath(import.meta.url)
   const projectRoot = path.resolve(path.dirname(currentFilePath), '..')
@@ -315,6 +365,9 @@ function resolveOutputPath(outputType) {
   return path.join(outputDir, `icon.${outputType}`)
 }
 
+/**
+ * 生成与 PNG 风格一致的 SVG 矢量图标。
+ */
 function createSvgMarkup() {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" fill="none">
@@ -388,14 +441,23 @@ function createSvgMarkup() {
 `
 }
 
+/**
+ * 创建 RGBA 颜色对象。
+ */
 function rgba(r, g, b, a = 1) {
   return { r, g, b, a }
 }
 
+/**
+ * 将颜色对象转换为 SVG / CSS 可用的 rgba 文本。
+ */
 function toCssColor(color) {
   return `rgba(${color.r}, ${color.g}, ${color.b}, ${Number(color.a.toFixed(3))})`
 }
 
+/**
+ * 直接写入像素缓冲区中的单个像素。
+ */
 function setPixel(x, y, color) {
   const index = (y * width + x) * 4
   pixels[index] = color.r
@@ -404,6 +466,9 @@ function setPixel(x, y, color) {
   pixels[index + 3] = Math.round(clamp(color.a, 0, 1) * 255)
 }
 
+/**
+ * 根据采样覆盖率调整颜色透明度。
+ */
 function withCoverage(color, coverage) {
   return {
     ...color,
@@ -411,10 +476,14 @@ function withCoverage(color, coverage) {
   }
 }
 
+/**
+ * 将 RGBA 像素缓冲区编码成 PNG 文件。
+ */
 function writePng(filePath, pngWidth, pngHeight, rgbaPixels) {
   const rawRows = Buffer.alloc((pngWidth * 4 + 1) * pngHeight)
 
   for (let y = 0; y < pngHeight; y += 1) {
+    // PNG 每行前面都需要带一个 filter byte，这里固定使用 0。
     const rowStart = y * (pngWidth * 4 + 1)
     rawRows[rowStart] = 0
     rgbaPixels.subarray(y * pngWidth * 4, (y + 1) * pngWidth * 4).forEach((value, index) => {
@@ -442,6 +511,9 @@ function writePng(filePath, pngWidth, pngHeight, rgbaPixels) {
   writeFileSync(filePath, pngBuffer)
 }
 
+/**
+ * 创建 PNG 的单个数据块。
+ */
 function createChunk(type, data) {
   const typeBuffer = Buffer.from(type, 'ascii')
   const lengthBuffer = Buffer.alloc(4)
@@ -452,6 +524,9 @@ function createChunk(type, data) {
   return Buffer.concat([lengthBuffer, typeBuffer, data, crcBuffer])
 }
 
+/**
+ * 计算 PNG 数据块所需的 CRC32 校验值。
+ */
 function crc32(buffer) {
   let crc = 0xFFFFFFFF
 

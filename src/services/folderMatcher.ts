@@ -12,6 +12,9 @@ export interface FolderTarget {
   uri: Uri
 }
 
+/**
+ * 校验命令触发对象是否为资源管理器中的本地目录，并返回统一结构。
+ */
 export async function resolveFolderTarget(uri?: Uri): Promise<FolderTarget> {
   if (!uri || uri.scheme !== 'file') {
     throw new Error('请在资源管理器中对本地目录执行此命令。')
@@ -29,14 +32,23 @@ export async function resolveFolderTarget(uri?: Uri): Promise<FolderTarget> {
   }
 }
 
+/**
+ * 计算目录下 `__t2e.data` 的绝对路径。
+ */
 export function getMetadataDirPath(folderPath: string): string {
   return path.join(folderPath, METADATA_DIRNAME)
 }
 
+/**
+ * 计算目录下 `metadata.yml` 的绝对路径。
+ */
 export function getMetadataFilePath(folderPath: string): string {
   return path.join(getMetadataDirPath(folderPath), METADATA_FILENAME)
 }
 
+/**
+ * 判断某个路径当前是否可访问。
+ */
 export async function exists(filePath: string): Promise<boolean> {
   try {
     await fs.access(filePath)
@@ -47,6 +59,9 @@ export async function exists(filePath: string): Promise<boolean> {
   }
 }
 
+/**
+ * 判断目标目录是否已经初始化过 `metadata.yml`。
+ */
 export async function hasMetadataFile(folderPath: string): Promise<boolean> {
   return exists(getMetadataFilePath(folderPath))
 }

@@ -38,6 +38,9 @@ interface ParsedName {
   order: number | null
 }
 
+/**
+ * 扫描书籍目录，生成既保留层级又便于线性遍历的内容树。
+ */
 export async function scanContentTree(rootFolderPath: string): Promise<ContentScanResult> {
   const nodes = await scanDirectory(rootFolderPath, '')
 
@@ -47,6 +50,9 @@ export async function scanContentTree(rootFolderPath: string): Promise<ContentSc
   }
 }
 
+/**
+ * 依据数字前缀优先、名称次之的规则排序节点。
+ */
 function compareNodes(left: ContentNode, right: ContentNode): number {
   if (left.order !== null && right.order !== null) {
     return left.order - right.order || compareByName(left, right)
@@ -63,6 +69,9 @@ function compareNodes(left: ContentNode, right: ContentNode): number {
   return compareByName(left, right)
 }
 
+/**
+ * 使用中文友好的自然排序比较节点名称。
+ */
 function compareByName(left: ContentNode, right: ContentNode): number {
   const nameCompare = left.displayName.localeCompare(right.displayName, 'zh-Hans-CN', {
     numeric: true,
@@ -80,6 +89,9 @@ function compareByName(left: ContentNode, right: ContentNode): number {
   return left.kind === 'folder' ? -1 : 1
 }
 
+/**
+ * 取得某个目录节点下用于代表该目录的首个文件。
+ */
 function findFirstFile(nodes: ContentNode[]): ContentFileNode | undefined {
   const firstNode = nodes[0]
   if (!firstNode) {
@@ -89,6 +101,9 @@ function findFirstFile(nodes: ContentNode[]): ContentFileNode | undefined {
   return firstNode.kind === 'file' ? firstNode : firstNode.firstFile
 }
 
+/**
+ * 将树状节点拍平成文件列表，供后续章节线性编号使用。
+ */
 function flattenFiles(nodes: ContentNode[]): ContentFileNode[] {
   const files: ContentFileNode[] = []
 
@@ -104,11 +119,15 @@ function flattenFiles(nodes: ContentNode[]): ContentFileNode[] {
   return files
 }
 
+/**
+ * 解析类似 `001_序章.md` 的数字前缀排序信息。
+ */
 function parseOrderedName(name: string, isFile: boolean): ParsedName {
   const extension = isFile ? path.extname(name) : ''
   const rawName = isFile ? path.basename(name, extension) : name
   let cursor = 0
 
+  // 先读出最前面的连续数字，只有紧跟下划线时才视为有效排序前缀。
   while (cursor < rawName.length && isDigit(rawName.charCodeAt(cursor))) {
     cursor += 1
   }
@@ -138,6 +157,9 @@ function parseOrderedName(name: string, isFile: boolean): ParsedName {
   }
 }
 
+/**
+ * 递归扫描目录，忽略 `__t2e.data` 和非 md/txt 文件。
+ */
 async function scanDirectory(dirPath: string, relativePath: string): Promise<ContentNode[]> {
   const entries = await fs.readdir(dirPath, { withFileTypes: true })
   const nodes: ContentNode[] = []
@@ -151,6 +173,7 @@ async function scanDirectory(dirPath: string, relativePath: string): Promise<Con
     const entryRelativePath = relativePath ? path.join(relativePath, entry.name) : entry.name
 
     if (entry.isDirectory()) {
+      // 空目录不会进入结果，只有至少包含一个可用文件时才保留该目录节点。
       const children = await scanDirectory(entryPath, entryRelativePath)
       const firstFile = findFirstFile(children)
       if (!firstFile) {
@@ -195,6 +218,9 @@ async function scanDirectory(dirPath: string, relativePath: string): Promise<Con
   return nodes.sort(compareNodes)
 }
 
+/**
+ * 判断字符编码是否为十进制数字。
+ */
 function isDigit(code: number): boolean {
   return code >= 48 && code <= 57
 }
