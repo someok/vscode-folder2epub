@@ -49,6 +49,8 @@ function main() {
 
 /**
  * 生成 PNG 图标，基于像素缓冲区逐层绘制形状。
+ *
+ * @param filePath 输出 PNG 的绝对路径。
  */
 function generatePngIcon(filePath) {
   pixels = new Uint8Array(width * height * 4)
@@ -134,6 +136,11 @@ function drawPageLines() {
 
 /**
  * 使用简单抗锯齿覆盖率绘制圆形。
+ *
+ * @param cx 圆心 X 坐标。
+ * @param cy 圆心 Y 坐标。
+ * @param radius 半径。
+ * @param shader 用于计算像素颜色的着色函数。
  */
 function fillCircle(cx, cy, radius, shader) {
   const minX = Math.max(0, Math.floor(cx - radius - 1))
@@ -156,6 +163,9 @@ function fillCircle(cx, cy, radius, shader) {
 
 /**
  * 在像素缓冲区内填充任意多边形。
+ *
+ * @param points 多边形顶点列表。
+ * @param shader 用于计算像素颜色的着色函数。
  */
 function fillPolygon(points, shader) {
   const xs = points.map(([x]) => x)
@@ -178,6 +188,13 @@ function fillPolygon(points, shader) {
 
 /**
  * 在像素缓冲区内填充圆角矩形。
+ *
+ * @param x 左上角 X 坐标。
+ * @param y 左上角 Y 坐标。
+ * @param w 宽度。
+ * @param h 高度。
+ * @param radius 圆角半径。
+ * @param shader 用于计算像素颜色的着色函数。
  */
 function fillRoundedRect(x, y, w, h, radius, shader) {
   const minX = Math.max(0, Math.floor(x - 1))
@@ -233,6 +250,10 @@ function paintBackground() {
 
 /**
  * 按 alpha 混合规则把颜色叠加到目标像素上。
+ *
+ * @param x 目标像素 X 坐标。
+ * @param y 目标像素 Y 坐标。
+ * @param color 要混合的颜色。
  */
 function blendPixel(x, y, color) {
   if (color.a <= 0) {
@@ -259,6 +280,11 @@ function blendPixel(x, y, color) {
 
 /**
  * 把数值限制在指定区间内。
+ *
+ * @param value 原始值。
+ * @param min 最小值。
+ * @param max 最大值。
+ * @returns 截断后的值。
  */
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max)
@@ -266,6 +292,9 @@ function clamp(value, min, max) {
 
 /**
  * 将十六进制颜色转换为 RGBA 对象。
+ *
+ * @param value 十六进制颜色文本。
+ * @returns RGBA 颜色对象。
  */
 function hex(value) {
   const normalized = value.replace('#', '')
@@ -279,6 +308,11 @@ function hex(value) {
 
 /**
  * 在线性空间内混合两种颜色。
+ *
+ * @param from 起始颜色。
+ * @param to 结束颜色。
+ * @param amount 混合比例。
+ * @returns 混合后的颜色。
  */
 function mixColor(from, to, amount) {
   const t = clamp(amount, 0, 1)
@@ -292,6 +326,11 @@ function mixColor(from, to, amount) {
 
 /**
  * 将区间内的值归一化到 0 到 1。
+ *
+ * @param value 原始值。
+ * @param min 区间最小值。
+ * @param max 区间最大值。
+ * @returns 归一化后的值。
  */
 function normalize(value, min, max) {
   return clamp((value - min) / (max - min), 0, 1)
@@ -299,6 +338,11 @@ function normalize(value, min, max) {
 
 /**
  * 使用射线法判断点是否落在多边形内部。
+ *
+ * @param x 待判断点的 X 坐标。
+ * @param y 待判断点的 Y 坐标。
+ * @param points 多边形顶点列表。
+ * @returns 点在多边形内部时返回 `true`。
  */
 function pointInPolygon(x, y, points) {
   let inside = false
@@ -319,6 +363,13 @@ function pointInPolygon(x, y, points) {
 
 /**
  * 计算某点相对圆心和半径的径向衰减系数。
+ *
+ * @param x 点的 X 坐标。
+ * @param y 点的 Y 坐标。
+ * @param centerX 圆心 X 坐标。
+ * @param centerY 圆心 Y 坐标。
+ * @param radius 半径。
+ * @returns 径向衰减系数。
  */
 function radialFalloff(x, y, centerX, centerY, radius) {
   return clamp(1 - Math.hypot(x - centerX, y - centerY) / radius, 0, 1)
@@ -326,6 +377,9 @@ function radialFalloff(x, y, centerX, centerY, radius) {
 
 /**
  * 解析 `-type` / `--type` 参数，决定生成 PNG 还是 SVG。
+ *
+ * @param args 命令行参数列表。
+ * @returns 目标输出类型。
  */
 function parseOutputType(args) {
   if (!args.length) {
@@ -355,6 +409,9 @@ function parseOutputType(args) {
 
 /**
  * 计算图标输出路径，统一写到项目 `media/` 目录。
+ *
+ * @param outputType 输出类型。
+ * @returns 输出文件绝对路径。
  */
 function resolveOutputPath(outputType) {
   const currentFilePath = fileURLToPath(import.meta.url)
@@ -367,6 +424,8 @@ function resolveOutputPath(outputType) {
 
 /**
  * 生成与 PNG 风格一致的 SVG 矢量图标。
+ *
+ * @returns SVG 文本。
  */
 function createSvgMarkup() {
   return `<?xml version="1.0" encoding="UTF-8"?>
@@ -443,6 +502,12 @@ function createSvgMarkup() {
 
 /**
  * 创建 RGBA 颜色对象。
+ *
+ * @param r 红色通道。
+ * @param g 绿色通道。
+ * @param b 蓝色通道。
+ * @param a Alpha 通道。
+ * @returns RGBA 颜色对象。
  */
 function rgba(r, g, b, a = 1) {
   return { r, g, b, a }
@@ -450,6 +515,9 @@ function rgba(r, g, b, a = 1) {
 
 /**
  * 将颜色对象转换为 SVG / CSS 可用的 rgba 文本。
+ *
+ * @param color 颜色对象。
+ * @returns CSS 颜色文本。
  */
 function toCssColor(color) {
   return `rgba(${color.r}, ${color.g}, ${color.b}, ${Number(color.a.toFixed(3))})`
@@ -457,6 +525,10 @@ function toCssColor(color) {
 
 /**
  * 直接写入像素缓冲区中的单个像素。
+ *
+ * @param x 像素 X 坐标。
+ * @param y 像素 Y 坐标。
+ * @param color 颜色对象。
  */
 function setPixel(x, y, color) {
   const index = (y * width + x) * 4
@@ -468,6 +540,10 @@ function setPixel(x, y, color) {
 
 /**
  * 根据采样覆盖率调整颜色透明度。
+ *
+ * @param color 原始颜色。
+ * @param coverage 覆盖率。
+ * @returns 调整后的颜色。
  */
 function withCoverage(color, coverage) {
   return {
@@ -478,6 +554,11 @@ function withCoverage(color, coverage) {
 
 /**
  * 将 RGBA 像素缓冲区编码成 PNG 文件。
+ *
+ * @param filePath 输出文件路径。
+ * @param pngWidth PNG 宽度。
+ * @param pngHeight PNG 高度。
+ * @param rgbaPixels RGBA 像素缓冲区。
  */
 function writePng(filePath, pngWidth, pngHeight, rgbaPixels) {
   const rawRows = Buffer.alloc((pngWidth * 4 + 1) * pngHeight)
@@ -513,6 +594,10 @@ function writePng(filePath, pngWidth, pngHeight, rgbaPixels) {
 
 /**
  * 创建 PNG 的单个数据块。
+ *
+ * @param type 数据块类型。
+ * @param data 数据块内容。
+ * @returns 组装后的 PNG 数据块。
  */
 function createChunk(type, data) {
   const typeBuffer = Buffer.from(type, 'ascii')
@@ -526,6 +611,9 @@ function createChunk(type, data) {
 
 /**
  * 计算 PNG 数据块所需的 CRC32 校验值。
+ *
+ * @param buffer 需要计算校验值的缓冲区。
+ * @returns CRC32 值。
  */
 function crc32(buffer) {
   let crc = 0xFFFFFFFF

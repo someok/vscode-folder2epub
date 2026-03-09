@@ -10,6 +10,8 @@ export interface ConfigureDefaultAuthorResult {
 
 /**
  * 读取当前 Workspace 级别保存的默认作者。
+ *
+ * @returns 当前 Workspace 中保存的默认作者；未配置时返回空字符串。
  */
 export function getDefaultAuthor(): string {
   const inspectedValue = vscode.workspace
@@ -21,6 +23,9 @@ export function getDefaultAuthor(): string {
 
 /**
  * 将默认作者写入当前 Workspace 配置。
+ *
+ * @param author 要保存的作者名；会在写入前执行 `trim`。
+ * @returns 写入完成后返回的 Promise。
  */
 export async function setDefaultAuthor(author: string): Promise<void> {
   if (!vscode.workspace.workspaceFile && !vscode.workspace.workspaceFolders?.length) {
@@ -34,6 +39,8 @@ export async function setDefaultAuthor(author: string): Promise<void> {
 
 /**
  * 弹出输入框交互式配置默认作者，并返回本次配置结果。
+ *
+ * @returns 包含是否应用配置以及最终作者值的结果对象。
  */
 export async function configureDefaultAuthorInteractively(): Promise<ConfigureDefaultAuthorResult> {
   const currentAuthor = getDefaultAuthor()

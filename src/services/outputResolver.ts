@@ -7,6 +7,9 @@ import { EPUB_CONFIG_FILENAME, exists } from './folderMatcher'
 
 /**
  * 自当前目录向上查找 `__epub.yml`，解析最终输出目录。
+ *
+ * @param folderPath 当前书籍目录绝对路径。
+ * @returns 解析后的输出目录绝对路径。
  */
 export async function resolveOutputDir(folderPath: string): Promise<string> {
   let currentDir = folderPath

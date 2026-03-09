@@ -14,6 +14,9 @@ export interface FolderTarget {
 
 /**
  * 校验命令触发对象是否为资源管理器中的本地目录，并返回统一结构。
+ *
+ * @param uri 命令触发时传入的资源 URI。
+ * @returns 规范化后的目标目录信息。
  */
 export async function resolveFolderTarget(uri?: Uri): Promise<FolderTarget> {
   if (!uri || uri.scheme !== 'file') {
@@ -34,6 +37,9 @@ export async function resolveFolderTarget(uri?: Uri): Promise<FolderTarget> {
 
 /**
  * 计算目录下 `__t2e.data` 的绝对路径。
+ *
+ * @param folderPath 目标目录绝对路径。
+ * @returns `__t2e.data` 的绝对路径。
  */
 export function getMetadataDirPath(folderPath: string): string {
   return path.join(folderPath, METADATA_DIRNAME)
@@ -41,6 +47,9 @@ export function getMetadataDirPath(folderPath: string): string {
 
 /**
  * 计算目录下 `metadata.yml` 的绝对路径。
+ *
+ * @param folderPath 目标目录绝对路径。
+ * @returns `metadata.yml` 的绝对路径。
  */
 export function getMetadataFilePath(folderPath: string): string {
   return path.join(getMetadataDirPath(folderPath), METADATA_FILENAME)
@@ -48,6 +57,9 @@ export function getMetadataFilePath(folderPath: string): string {
 
 /**
  * 判断某个路径当前是否可访问。
+ *
+ * @param filePath 需要检测的路径。
+ * @returns 路径存在且可访问时返回 `true`。
  */
 export async function exists(filePath: string): Promise<boolean> {
   try {
@@ -61,6 +73,9 @@ export async function exists(filePath: string): Promise<boolean> {
 
 /**
  * 判断目标目录是否已经初始化过 `metadata.yml`。
+ *
+ * @param folderPath 目标目录绝对路径。
+ * @returns 若 metadata 文件已存在则返回 `true`。
  */
 export async function hasMetadataFile(folderPath: string): Promise<boolean> {
   return exists(getMetadataFilePath(folderPath))

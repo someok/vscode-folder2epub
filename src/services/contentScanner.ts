@@ -40,6 +40,9 @@ interface ParsedName {
 
 /**
  * 扫描书籍目录，生成既保留层级又便于线性遍历的内容树。
+ *
+ * @param rootFolderPath 书籍根目录绝对路径。
+ * @returns 包含树状节点和线性文件列表的扫描结果。
  */
 export async function scanContentTree(rootFolderPath: string): Promise<ContentScanResult> {
   const nodes = await scanDirectory(rootFolderPath, '')
@@ -52,6 +55,10 @@ export async function scanContentTree(rootFolderPath: string): Promise<ContentSc
 
 /**
  * 依据数字前缀优先、名称次之的规则排序节点。
+ *
+ * @param left 左侧节点。
+ * @param right 右侧节点。
+ * @returns 排序比较结果。
  */
 function compareNodes(left: ContentNode, right: ContentNode): number {
   if (left.order !== null && right.order !== null) {
@@ -71,6 +78,10 @@ function compareNodes(left: ContentNode, right: ContentNode): number {
 
 /**
  * 使用中文友好的自然排序比较节点名称。
+ *
+ * @param left 左侧节点。
+ * @param right 右侧节点。
+ * @returns 排序比较结果。
  */
 function compareByName(left: ContentNode, right: ContentNode): number {
   const nameCompare = left.displayName.localeCompare(right.displayName, 'zh-Hans-CN', {
@@ -91,6 +102,9 @@ function compareByName(left: ContentNode, right: ContentNode): number {
 
 /**
  * 取得某个目录节点下用于代表该目录的首个文件。
+ *
+ * @param nodes 目录节点的直接子节点列表。
+ * @returns 目录下排序后的首个文件；若不存在则返回 `undefined`。
  */
 function findFirstFile(nodes: ContentNode[]): ContentFileNode | undefined {
   const firstNode = nodes[0]
@@ -103,6 +117,9 @@ function findFirstFile(nodes: ContentNode[]): ContentFileNode | undefined {
 
 /**
  * 将树状节点拍平成文件列表，供后续章节线性编号使用。
+ *
+ * @param nodes 树状内容节点。
+ * @returns 线性文件列表。
  */
 function flattenFiles(nodes: ContentNode[]): ContentFileNode[] {
   const files: ContentFileNode[] = []
@@ -121,6 +138,10 @@ function flattenFiles(nodes: ContentNode[]): ContentFileNode[] {
 
 /**
  * 解析类似 `001_序章.md` 的数字前缀排序信息。
+ *
+ * @param name 原始文件名或目录名。
+ * @param isFile 当前名称是否来自文件。
+ * @returns 解析出的展示名和排序序号。
  */
 function parseOrderedName(name: string, isFile: boolean): ParsedName {
   const extension = isFile ? path.extname(name) : ''
@@ -159,6 +180,10 @@ function parseOrderedName(name: string, isFile: boolean): ParsedName {
 
 /**
  * 递归扫描目录，忽略 `__t2e.data` 和非 md/txt 文件。
+ *
+ * @param dirPath 当前扫描目录绝对路径。
+ * @param relativePath 相对于书籍根目录的相对路径。
+ * @returns 当前目录下的有效内容节点。
  */
 async function scanDirectory(dirPath: string, relativePath: string): Promise<ContentNode[]> {
   const entries = await fs.readdir(dirPath, { withFileTypes: true })
@@ -220,6 +245,9 @@ async function scanDirectory(dirPath: string, relativePath: string): Promise<Con
 
 /**
  * 判断字符编码是否为十进制数字。
+ *
+ * @param code 单个字符的 charCode。
+ * @returns 若为数字字符则返回 `true`。
  */
 function isDigit(code: number): boolean {
   return code >= 48 && code <= 57

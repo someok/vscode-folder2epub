@@ -11,6 +11,8 @@ import { resolveOutputDir } from '../services/outputResolver'
 
 /**
  * 注册“生成 epub”命令，串联 metadata 读取、内容扫描和 EPUB 打包流程。
+ *
+ * @returns 命令对应的可释放对象。
  */
 export function registerGenerateEpubCommand(): vscode.Disposable {
   return vscode.commands.registerCommand('folder2epub.generateEpub', async (uri?: vscode.Uri) => {

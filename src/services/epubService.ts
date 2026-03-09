@@ -135,7 +135,10 @@ interface NavEntry {
 type CoverAsset = EpubAsset
 
 /**
- * 将扫描出的内容树、metadata 和资源文件打包成最终的 EPUB 文件。
+ * 将扫描出的内容树、 metadata 和资源文件打包成最终的 EPUB 文件。
+ *
+ * @param input EPUB 构建所需的全部输入。
+ * @returns 最终输出文件路径和章节数量。
  */
 export async function buildEpub(input: BuildEpubInput): Promise<BuildEpubResult> {
   const markdown = new MarkdownIt({
@@ -211,6 +214,10 @@ export async function buildEpub(input: BuildEpubInput): Promise<BuildEpubResult>
 
 /**
  * 将扫描树映射成 nav/xhtml 与 ncx 共用的目录结构。
+ *
+ * @param nodes 扫描得到的内容树。
+ * @param chapterMap 文件路径到章节对象的映射。
+ * @returns 可用于生成目录文件的导航节点。
  */
 function buildNavEntries(nodes: ContentNode[], chapterMap: Map<string, Chapter>): NavEntry[] {
   return nodes.map((node) => {
@@ -242,6 +249,10 @@ function buildNavEntries(nodes: ContentNode[], chapterMap: Map<string, Chapter>)
 
 /**
  * 生成单个章节的 XHTML 文档。
+ *
+ * @param title 章节标题。
+ * @param bodyHtml 已渲染好的章节正文 HTML。
+ * @returns 章节 XHTML 文本。
  */
 function createChapterDocument(title: string, bodyHtml: string): string {
   return `<?xml version="1.0" encoding="UTF-8"?>
@@ -263,6 +274,10 @@ function createChapterDocument(title: string, bodyHtml: string): string {
 
 /**
  * 生成书籍首页，用于在阅读器打开时展示封面、标题和作者。
+ *
+ * @param metadata 书籍 metadata。
+ * @param cover 已解析的封面资源；未配置时为 `undefined`。
+ * @returns 标题页对象。
  */
 function createTitlePage(metadata: EpubMetadata, cover: CoverAsset | undefined): FrontMatterPage {
   const title = getBookDisplayTitle(metadata)
@@ -298,6 +313,15 @@ function createTitlePage(metadata: EpubMetadata, cover: CoverAsset | undefined):
 
 /**
  * 生成 EPUB 3 的 `content.opf` 包文件。
+ *
+ * @param metadata 书籍 metadata。
+ * @param titlePage 标题页资源。
+ * @param chapters 章节列表。
+ * @param cover 封面资源。
+ * @param contentImages 正文图片资源列表。
+ * @param identifier 书籍唯一标识符。
+ * @param modifiedAt 书籍更新时间。
+ * @returns `content.opf` XML 文本。
  */
 function createContentOpf(
   metadata: EpubMetadata,
@@ -353,6 +377,9 @@ ${descriptionXml}    <meta property="dcterms:modified">${modifiedAt}</meta>
 
 /**
  * 递归生成导航页里的 `<ol>` 列表。
+ *
+ * @param entries 当前层级的导航节点。
+ * @returns 导航列表 HTML 片段。
  */
 function createNavList(entries: NavEntry[]): string {
   return entries.map((entry) => {
@@ -363,6 +390,10 @@ function createNavList(entries: NavEntry[]): string {
 
 /**
  * 生成 EPUB 3 的导航页 `nav.xhtml`。
+ *
+ * @param metadata 书籍 metadata。
+ * @param navEntries 导航节点。
+ * @returns `nav.xhtml` 文本。
  */
 function createNavXhtml(metadata: EpubMetadata, navEntries: NavEntry[]): string {
   const title = getBookDisplayTitle(metadata)
@@ -386,6 +417,11 @@ ${createNavList(navEntries)}
 
 /**
  * 生成兼容旧阅读器的 `toc.ncx` 目录文件。
+ *
+ * @param metadata 书籍 metadata。
+ * @param navEntries 导航节点。
+ * @param identifier 书籍唯一标识符。
+ * @returns `toc.ncx` XML 文本。
  */
 function createTocNcx(metadata: EpubMetadata, navEntries: NavEntry[], identifier: string): string {
   const title = getBookDisplayTitle(metadata)
@@ -414,6 +450,11 @@ ${navMap}
 
 /**
  * 将树状目录递归展开成 NCX navPoint 结构。
+ *
+ * @param entries 当前层级的导航节点。
+ * @param nextPlayOrder 用于生成顺序号的回调。
+ * @param depth 当前缩进层级。
+ * @returns NCX `navPoint` 片段。
  */
 function createNcxPoints(entries: NavEntry[], nextPlayOrder: () => number, depth = 2): string {
   return entries.map((entry) => {
@@ -430,6 +471,11 @@ ${'  '.repeat(depth + 1)}<content src="${escapeXml(entry.href)}" />${children}</
 
 /**
  * 把扫描树转成线性章节列表，并在这个过程中收集正文图片资源。
+ *
+ * @param nodes 扫描得到的内容树。
+ * @param markdown markdown-it 实例。
+ * @param rootFolderPath 书籍根目录绝对路径。
+ * @returns 章节列表和正文图片资源。
  */
 async function createChapters(
   nodes: ContentNode[],
@@ -481,6 +527,9 @@ async function createChapters(
 
 /**
  * 转义写入 XML/XHTML 前需要处理的特殊字符。
+ *
+ * @param input 原始文本。
+ * @returns XML 安全文本。
  */
 function escapeXml(input: string): string {
   return input
@@ -493,6 +542,9 @@ function escapeXml(input: string): string {
 
 /**
  * 将树状内容节点拍平成线性文件列表。
+ *
+ * @param nodes 树状内容节点。
+ * @returns 线性文件列表。
  */
 function flattenFiles(nodes: ContentNode[]): ContentFileNode[] {
   const files: ContentFileNode[] = []
@@ -511,6 +563,10 @@ function flattenFiles(nodes: ContentNode[]): ContentFileNode[] {
 
 /**
  * 为嵌套生成的文本片段统一增加缩进。
+ *
+ * @param text 原始多行文本。
+ * @param spaces 每行需要增加的空格数。
+ * @returns 增加缩进后的文本。
  */
 function indentLines(text: string, spaces: number): string {
   const indentation = ' '.repeat(spaces)
@@ -522,6 +578,10 @@ function indentLines(text: string, spaces: number): string {
 
 /**
  * 根据 metadata 中的 `cover` 字段加载封面资源。
+ *
+ * @param rootFolderPath 书籍根目录绝对路径。
+ * @param configuredCover metadata 中配置的封面文件名。
+ * @returns 封面资源；未配置封面时返回 `undefined`。
  */
 async function loadCoverAsset(rootFolderPath: string, configuredCover: string): Promise<CoverAsset | undefined> {
   const coverName = configuredCover.trim()
@@ -556,6 +616,9 @@ async function loadCoverAsset(rootFolderPath: string, configuredCover: string): 
 
 /**
  * 将文件扩展名映射为 EPUB manifest 所需的 media-type。
+ *
+ * @param extension 文件扩展名。
+ * @returns 对应的 media-type；不支持时返回 `undefined`。
  */
 function getMediaType(extension: string): string | undefined {
   switch (extension) {
@@ -577,6 +640,9 @@ function getMediaType(extension: string): string | undefined {
 
 /**
  * 把纯文本内容按段落拆分并渲染成简单 XHTML。
+ *
+ * @param rawText 原始纯文本。
+ * @returns 渲染后的 HTML 片段。
  */
 function renderPlainText(rawText: string): string {
   const normalizedText = rawText.replace(/\r\n/g, '\n')
@@ -595,6 +661,14 @@ function renderPlainText(rawText: string): string {
 
 /**
  * 渲染单个 Markdown 文件，并把本地图片引用改写为包内路径。
+ *
+ * @param file 当前 Markdown 文件节点。
+ * @param rawText Markdown 原文。
+ * @param markdown markdown-it 实例。
+ * @param rootFolderPath 书籍根目录绝对路径。
+ * @param contentImagesBySourcePath 已收集的图片资源映射。
+ * @param nextAssetIndex 生成图片序号的回调。
+ * @returns 渲染后的 HTML 片段。
  */
 async function renderMarkdownChapter(
   file: ContentFileNode,
@@ -618,6 +692,13 @@ async function renderMarkdownChapter(
 
 /**
  * 深度遍历 markdown-it token 树，统一处理 Markdown 图片和 HTML `<img>`。
+ *
+ * @param tokens 当前层级的 token 列表。
+ * @param markdownFilePath 当前 Markdown 文件绝对路径。
+ * @param rootFolderPath 书籍根目录绝对路径。
+ * @param contentImagesBySourcePath 已收集的图片资源映射。
+ * @param nextAssetIndex 生成图片序号的回调。
+ * @returns 重写完成后的 Promise。
  */
 async function rewriteTokenImageSources(
   tokens: MarkdownIt.Token[],
@@ -663,6 +744,13 @@ async function rewriteTokenImageSources(
 
 /**
  * 重写标准 Markdown 语法图片的 `src`。
+ *
+ * @param token Markdown 图片 token。
+ * @param markdownFilePath 当前 Markdown 文件绝对路径。
+ * @param rootFolderPath 书籍根目录绝对路径。
+ * @param contentImagesBySourcePath 已收集的图片资源映射。
+ * @param nextAssetIndex 生成图片序号的回调。
+ * @returns 重写完成后的 Promise。
  */
 async function rewriteImageTokenSource(
   token: MarkdownIt.Token,
@@ -689,6 +777,13 @@ async function rewriteImageTokenSource(
 
 /**
  * 读取或复用正文图片资源，并保证同一源文件只打包一次。
+ *
+ * @param sourcePath 图片绝对路径。
+ * @param rawSource Markdown 或 HTML 中的原始图片路径。
+ * @param markdownFilePath 当前 Markdown 文件绝对路径。
+ * @param contentImagesBySourcePath 已收集的图片资源映射。
+ * @param nextAssetIndex 生成图片序号的回调。
+ * @returns 可写入 EPUB 的图片资源对象。
  */
 async function getOrCreateImageAsset(
   sourcePath: string,
@@ -733,6 +828,9 @@ async function getOrCreateImageAsset(
 
 /**
  * 判断图片是否为外部资源，外链图片不参与本地打包。
+ *
+ * @param source 原始图片路径。
+ * @returns 若为外部资源则返回 `true`。
  */
 function isExternalImageSource(source: string): boolean {
   return /^(?:https?:)?\/\//i.test(source) || /^data:/i.test(source)
@@ -740,6 +838,11 @@ function isExternalImageSource(source: string): boolean {
 
 /**
  * 解析 Markdown 图片路径，并限制其不能越出当前书籍目录。
+ *
+ * @param rootFolderPath 书籍根目录绝对路径。
+ * @param markdownFilePath 当前 Markdown 文件绝对路径。
+ * @param rawSource 原始图片路径。
+ * @returns 解析后的图片绝对路径。
  */
 function resolveMarkdownImagePath(rootFolderPath: string, markdownFilePath: string, rawSource: string): string {
   const source = stripQueryAndHash(rawSource)
@@ -762,6 +865,13 @@ function resolveMarkdownImagePath(rootFolderPath: string, markdownFilePath: stri
 
 /**
  * 扫描 HTML 字符串中的全部 `<img>` 并逐个重写。
+ *
+ * @param html 原始 HTML 片段。
+ * @param markdownFilePath 当前 Markdown 文件绝对路径。
+ * @param rootFolderPath 书籍根目录绝对路径。
+ * @param contentImagesBySourcePath 已收集的图片资源映射。
+ * @param nextAssetIndex 生成图片序号的回调。
+ * @returns 重写后的 HTML 片段。
  */
 async function rewriteHtmlImageSources(
   html: string,
@@ -801,6 +911,13 @@ async function rewriteHtmlImageSources(
 
 /**
  * 重写单个 HTML `<img>` 标签的 `src` 属性。
+ *
+ * @param htmlTag 单个 `<img>` 标签文本。
+ * @param markdownFilePath 当前 Markdown 文件绝对路径。
+ * @param rootFolderPath 书籍根目录绝对路径。
+ * @param contentImagesBySourcePath 已收集的图片资源映射。
+ * @param nextAssetIndex 生成图片序号的回调。
+ * @returns 重写后的标签文本。
  */
 async function rewriteHtmlImageTag(
   htmlTag: string,
@@ -835,6 +952,12 @@ async function rewriteHtmlImageTag(
 
 /**
  * 组装统一格式的 Markdown 图片错误消息。
+ *
+ * @param prefix 错误前缀。
+ * @param markdownFilePath 当前 Markdown 文件绝对路径。
+ * @param resolvedPath 已解析出的图片绝对路径。
+ * @param rawSource 原始图片路径。
+ * @returns 可直接展示的错误消息。
  */
 function createMarkdownImageErrorMessage(
   prefix: string,
@@ -847,6 +970,11 @@ function createMarkdownImageErrorMessage(
 
 /**
  * 把图片路径格式化为相对于当前 Markdown 文件的显示形式。
+ *
+ * @param markdownFilePath 当前 Markdown 文件绝对路径。
+ * @param resolvedPath 已解析出的图片绝对路径。
+ * @param rawSource 原始图片路径。
+ * @returns 用于报错展示的相对路径。
  */
 function formatPathRelativeToMarkdown(markdownFilePath: string, resolvedPath: string, rawSource: string): string {
   const normalizedSource = stripQueryAndHash(rawSource).trim()
@@ -860,6 +988,9 @@ function formatPathRelativeToMarkdown(markdownFilePath: string, resolvedPath: st
 
 /**
  * 容错地解码 URI，避免非法编码直接中断生成流程。
+ *
+ * @param value 原始 URI 片段。
+ * @returns 解码后的 URI；解码失败时返回原值。
  */
 function safeDecodeUri(value: string): string {
   try {
@@ -872,6 +1003,9 @@ function safeDecodeUri(value: string): string {
 
 /**
  * 去掉路径中的 query 和 hash，便于做文件系统解析。
+ *
+ * @param value 原始路径。
+ * @returns 去除 query 和 hash 后的路径。
  */
 function stripQueryAndHash(value: string): string {
   return value.replace(/[?#].*$/, '')
@@ -879,6 +1013,10 @@ function stripQueryAndHash(value: string): string {
 
 /**
  * 生成兼容不同平台分隔符的相对路径文本。
+ *
+ * @param fromPath 起始路径。
+ * @param targetPath 目标路径。
+ * @returns 标准化后的相对路径。
  */
 function toPortableRelativePath(fromPath: string, targetPath: string): string {
   const relativePath = path.relative(fromPath, targetPath)
@@ -887,6 +1025,9 @@ function toPortableRelativePath(fromPath: string, targetPath: string): string {
 
 /**
  * 统一把相对路径标准化为 `/` 分隔的展示格式。
+ *
+ * @param value 原始相对路径。
+ * @returns 标准化后的相对路径。
  */
 function normalizeRelativePath(value: string): string {
   const portablePath = value.split(path.sep).join('/')

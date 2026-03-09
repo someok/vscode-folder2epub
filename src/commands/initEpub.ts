@@ -11,6 +11,8 @@ const CONTINUE_WITH_EMPTY_AUTHOR_ACTION = '本次留空'
 
 /**
  * 注册“初始化 epub”命令，负责创建 `__t2e.data/metadata.yml`。
+ *
+ * @returns 命令对应的可释放对象。
  */
 export function registerInitEpubCommand(): vscode.Disposable {
   return vscode.commands.registerCommand('folder2epub.initEpub', async (uri?: vscode.Uri) => {

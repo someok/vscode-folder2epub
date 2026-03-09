@@ -6,6 +6,8 @@ import { registerInitEpubCommand } from './commands/initEpub'
 
 /**
  * 注册扩展生命周期内需要提供的全部命令。
+ *
+ * @param context VS Code 提供的扩展上下文。
  */
 export function activate(context: ExtensionContext): void {
   context.subscriptions.push(registerConfigureDefaultAuthorCommand())
