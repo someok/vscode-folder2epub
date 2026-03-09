@@ -1,0 +1,18 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "shell",
+      "command": "pnpm run compile",
+      "label": "pnpm: compile",
+      "problemMatcher": "$tsc"
+    },
+    {
+      "type": "shell",
+      "command": "pnpm run watch",
+      "label": "pnpm: watch",
+      "isBackground": true,
+      "problemMatcher": "$tsc-watch"
+    }
+  ]
+}

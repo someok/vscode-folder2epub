@@ -1,0 +1,75 @@
+{
+  "name": "vscode-folder2epub",
+  "displayName": "Folder2EPUB",
+  "description": "将符合条件的文件夹转换为 EPUB 的 VS Code 扩展",
+  "version": "0.0.1",
+  "publisher": "local",
+  "license": "MIT",
+  "type": "commonjs",
+  "packageManager": "pnpm@10.0.0",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "epub",
+    "markdown",
+    "txt",
+    "ebook"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "folder2epub.generateEpub",
+        "title": "生成 epub",
+        "category": "Folder2EPUB"
+      },
+      {
+        "command": "folder2epub.initEpub",
+        "title": "初始化 epub",
+        "category": "Folder2EPUB"
+      }
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "folder2epub.generateEpub",
+          "when": "explorerResourceIsFolder && resourceScheme == file",
+          "group": "navigation@50"
+        },
+        {
+          "command": "folder2epub.initEpub",
+          "when": "explorerResourceIsFolder && resourceScheme == file",
+          "group": "navigation@51"
+        }
+      ]
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint .",
+    "vscode:prepublish": "pnpm run compile"
+  },
+  "dependencies": {
+    "jszip": "^3.10.1",
+    "markdown-it": "^14.1.0",
+    "yaml": "^2.8.1"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^3.13.0",
+    "@types/markdown-it": "^14.1.2",
+    "@types/node": "^22.13.10",
+    "@types/vscode": "^1.85.0",
+    "eslint": "^9.21.0",
+    "typescript": "^5.8.2"
+  }
+}
