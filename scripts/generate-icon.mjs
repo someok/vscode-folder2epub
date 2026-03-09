@@ -1,12 +1,13 @@
 import { Buffer } from 'node:buffer'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
+import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 import { deflateSync } from 'node:zlib'
 
 const width = 512
 const height = 512
-const pixels = new Uint8Array(width * height * 4)
+let pixels = new Uint8Array(width * height * 4)
 
 const darkNavy = hex('#0E1A2B')
 const navyBlue = hex('#133250')
@@ -22,64 +23,89 @@ const teal = hex('#2BC3B0')
 const tealDeep = hex('#198C80')
 const highlight = rgba(255, 255, 255, 0.08)
 
-paintBackground()
-fillCircle(136, 136, 140, (_x, _y, coverage) => withCoverage(hex('#21466B'), coverage * 0.22))
-fillCircle(380, 384, 180, (_x, _y, coverage) => withCoverage(hex('#1E6A67'), coverage * 0.16))
-fillRoundedRect(110, 132, 146, 62, 18, (x, y, coverage) => {
-  const color = mixColor(amberTop, amberBody, normalize(y, 132, 194))
-  return withCoverage(color, coverage)
-})
-fillRoundedRect(86, 164, 340, 228, 38, (_x, _y, coverage) => withCoverage(shadowColor, coverage))
-fillRoundedRect(98, 146, 322, 220, 34, (x, y, coverage) => {
-  const color = mixColor(amberTop, amberBody, normalize(y, 146, 366))
-  return withCoverage(color, coverage)
-})
-fillRoundedRect(98, 230, 322, 136, 34, (x, y, coverage) => {
-  const color = mixColor(amberBody, amberDeep, normalize(y, 230, 366))
-  return withCoverage(color, coverage * 0.98)
-})
-fillRoundedRect(98, 146, 322, 58, 34, (_x, _y, coverage) => withCoverage(highlight, coverage * 0.65))
-fillRoundedRect(148, 116, 236, 186, 26, (_x, _y, coverage) => withCoverage(shadowColor, coverage))
-fillRoundedRect(142, 108, 116, 176, 18, (x, y, coverage) => {
-  const color = mixColor(pageCool, pageWarm, normalize(x, 142, 258) * 0.35 + normalize(y, 108, 284) * 0.25)
-  return withCoverage(color, coverage)
-})
-fillRoundedRect(254, 108, 116, 176, 18, (x, y, coverage) => {
-  const color = mixColor(pageCool, hex('#F3EAD9'), normalize(x, 254, 370) * 0.3 + normalize(y, 108, 284) * 0.2)
-  return withCoverage(color, coverage)
-})
-fillRoundedRect(247, 118, 14, 162, 7, (_x, _y, coverage) => withCoverage(rgba(134, 101, 54, 0.18), coverage))
-fillRoundedRect(302, 108, 34, 116, 0, (x, y, coverage) => {
-  const color = mixColor(teal, tealDeep, normalize(y, 108, 224) * 0.75 + normalize(x, 302, 336) * 0.25)
-  return withCoverage(color, coverage)
-})
-fillPolygon(
-  [
-    [302, 224],
-    [336, 224],
-    [319, 248],
-  ],
-  () => tealDeep,
-)
-drawPageLines()
-fillPolygon(
-  [
-    [386, 104],
-    [398, 128],
-    [422, 140],
-    [398, 152],
-    [386, 176],
-    [374, 152],
-    [350, 140],
-    [374, 128],
-  ],
-  () => hex('#66E7DE'),
-)
-fillCircle(386, 140, 12, (_x, _y, coverage) => withCoverage(rgba(255, 255, 255, 0.34), coverage))
-fillRoundedRect(148, 318, 224, 18, 9, (_x, _y, coverage) => withCoverage(rgba(255, 245, 223, 0.24), coverage))
-fillRoundedRect(148, 344, 176, 12, 6, (_x, _y, coverage) => withCoverage(rgba(255, 245, 223, 0.18), coverage))
+try {
+  main()
+}
+catch (error) {
+  const message = error instanceof Error ? error.message : String(error)
+  process.stderr.write(`${message}\n`)
+  process.exitCode = 1
+}
 
-writePng(resolveOutputPath(), width, height, pixels)
+function main() {
+  const outputType = parseOutputType(process.argv.slice(2))
+  const outputPath = resolveOutputPath(outputType)
+
+  if (outputType === 'svg') {
+    writeFileSync(outputPath, createSvgMarkup(), 'utf8')
+    return
+  }
+
+  generatePngIcon(outputPath)
+}
+
+function generatePngIcon(filePath) {
+  pixels = new Uint8Array(width * height * 4)
+
+  paintBackground()
+  fillCircle(136, 136, 140, (_x, _y, coverage) => withCoverage(hex('#21466B'), coverage * 0.22))
+  fillCircle(380, 384, 180, (_x, _y, coverage) => withCoverage(hex('#1E6A67'), coverage * 0.16))
+  fillRoundedRect(110, 132, 146, 62, 18, (_x, y, coverage) => {
+    const color = mixColor(amberTop, amberBody, normalize(y, 132, 194))
+    return withCoverage(color, coverage)
+  })
+  fillRoundedRect(86, 164, 340, 228, 38, (_x, _y, coverage) => withCoverage(shadowColor, coverage))
+  fillRoundedRect(98, 146, 322, 220, 34, (_x, y, coverage) => {
+    const color = mixColor(amberTop, amberBody, normalize(y, 146, 366))
+    return withCoverage(color, coverage)
+  })
+  fillRoundedRect(98, 230, 322, 136, 34, (_x, y, coverage) => {
+    const color = mixColor(amberBody, amberDeep, normalize(y, 230, 366))
+    return withCoverage(color, coverage * 0.98)
+  })
+  fillRoundedRect(98, 146, 322, 58, 34, (_x, _y, coverage) => withCoverage(highlight, coverage * 0.65))
+  fillRoundedRect(148, 116, 236, 186, 26, (_x, _y, coverage) => withCoverage(shadowColor, coverage))
+  fillRoundedRect(142, 108, 116, 176, 18, (x, y, coverage) => {
+    const color = mixColor(pageCool, pageWarm, normalize(x, 142, 258) * 0.35 + normalize(y, 108, 284) * 0.25)
+    return withCoverage(color, coverage)
+  })
+  fillRoundedRect(254, 108, 116, 176, 18, (x, y, coverage) => {
+    const color = mixColor(pageCool, hex('#F3EAD9'), normalize(x, 254, 370) * 0.3 + normalize(y, 108, 284) * 0.2)
+    return withCoverage(color, coverage)
+  })
+  fillRoundedRect(247, 118, 14, 162, 7, (_x, _y, coverage) => withCoverage(rgba(134, 101, 54, 0.18), coverage))
+  fillRoundedRect(302, 108, 34, 116, 0, (x, y, coverage) => {
+    const color = mixColor(teal, tealDeep, normalize(y, 108, 224) * 0.75 + normalize(x, 302, 336) * 0.25)
+    return withCoverage(color, coverage)
+  })
+  fillPolygon(
+    [
+      [302, 224],
+      [336, 224],
+      [319, 248],
+    ],
+    () => tealDeep,
+  )
+  drawPageLines()
+  fillPolygon(
+    [
+      [386, 104],
+      [398, 128],
+      [422, 140],
+      [398, 152],
+      [386, 176],
+      [374, 152],
+      [350, 140],
+      [374, 128],
+    ],
+    () => hex('#66E7DE'),
+  )
+  fillCircle(386, 140, 12, (_x, _y, coverage) => withCoverage(rgba(255, 255, 255, 0.34), coverage))
+  fillRoundedRect(148, 318, 224, 18, 9, (_x, _y, coverage) => withCoverage(rgba(255, 245, 223, 0.24), coverage))
+  fillRoundedRect(148, 344, 176, 12, 6, (_x, _y, coverage) => withCoverage(rgba(255, 245, 223, 0.18), coverage))
+
+  writePng(filePath, width, height, pixels)
+}
 
 function drawPageLines() {
   const lines = [
@@ -254,17 +280,120 @@ function radialFalloff(x, y, centerX, centerY, radius) {
   return clamp(1 - Math.hypot(x - centerX, y - centerY) / radius, 0, 1)
 }
 
-function resolveOutputPath() {
+function parseOutputType(args) {
+  if (!args.length) {
+    return 'png'
+  }
+
+  for (let index = 0; index < args.length; index += 1) {
+    const argument = args[index]
+    if (argument !== '-type' && argument !== '--type') {
+      continue
+    }
+
+    const nextValue = args[index + 1]
+    if (!nextValue) {
+      throw new Error('缺少 -type 参数值，支持：png、svg')
+    }
+
+    if (nextValue === 'png' || nextValue === 'svg') {
+      return nextValue
+    }
+
+    throw new Error(`不支持的 -type 参数值：${nextValue}，支持：png、svg`)
+  }
+
+  throw new Error(`不支持的参数：${args.join(' ')}`)
+}
+
+function resolveOutputPath(outputType) {
   const currentFilePath = fileURLToPath(import.meta.url)
   const projectRoot = path.resolve(path.dirname(currentFilePath), '..')
   const outputDir = path.join(projectRoot, 'media')
 
   mkdirSync(outputDir, { recursive: true })
-  return path.join(outputDir, 'icon.png')
+  return path.join(outputDir, `icon.${outputType}`)
+}
+
+function createSvgMarkup() {
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" fill="none">
+  <defs>
+    <linearGradient id="bg-gradient" x1="56" y1="32" x2="456" y2="492" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="${toCssColor(darkNavy)}" />
+      <stop offset="100%" stop-color="${toCssColor(navyBlue)}" />
+    </linearGradient>
+    <radialGradient id="accent-gradient" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(152 132) rotate(33) scale(302 286)">
+      <stop offset="0%" stop-color="${toCssColor(slateBlue)}" stop-opacity="0.52" />
+      <stop offset="100%" stop-color="${toCssColor(slateBlue)}" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="tab-gradient" x1="183" y1="132" x2="183" y2="194" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="${toCssColor(amberTop)}" />
+      <stop offset="100%" stop-color="${toCssColor(amberBody)}" />
+    </linearGradient>
+    <linearGradient id="folder-gradient" x1="259" y1="146" x2="259" y2="366" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="${toCssColor(amberTop)}" />
+      <stop offset="100%" stop-color="${toCssColor(amberBody)}" />
+    </linearGradient>
+    <linearGradient id="folder-deep-gradient" x1="259" y1="230" x2="259" y2="366" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="${toCssColor(amberBody)}" />
+      <stop offset="100%" stop-color="${toCssColor(amberDeep)}" />
+    </linearGradient>
+    <linearGradient id="page-left-gradient" x1="142" y1="108" x2="258" y2="284" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="${toCssColor(pageCool)}" />
+      <stop offset="100%" stop-color="${toCssColor(pageWarm)}" />
+    </linearGradient>
+    <linearGradient id="page-right-gradient" x1="254" y1="108" x2="370" y2="284" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="${toCssColor(pageCool)}" />
+      <stop offset="100%" stop-color="${toCssColor(hex('#F3EAD9'))}" />
+    </linearGradient>
+    <linearGradient id="bookmark-gradient" x1="319" y1="108" x2="319" y2="248" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="${toCssColor(teal)}" />
+      <stop offset="100%" stop-color="${toCssColor(tealDeep)}" />
+    </linearGradient>
+  </defs>
+
+  <rect width="${width}" height="${height}" fill="url(#bg-gradient)" />
+  <rect width="${width}" height="${height}" fill="url(#accent-gradient)" />
+
+  <circle cx="136" cy="136" r="140" fill="${toCssColor(hex('#21466B'))}" fill-opacity="0.22" />
+  <circle cx="380" cy="384" r="180" fill="${toCssColor(hex('#1E6A67'))}" fill-opacity="0.16" />
+
+  <rect x="110" y="132" width="146" height="62" rx="18" fill="url(#tab-gradient)" />
+  <rect x="86" y="164" width="340" height="228" rx="38" fill="${toCssColor(shadowColor)}" />
+  <rect x="98" y="146" width="322" height="220" rx="34" fill="url(#folder-gradient)" />
+  <rect x="98" y="230" width="322" height="136" rx="34" fill="url(#folder-deep-gradient)" />
+  <rect x="98" y="146" width="322" height="58" rx="34" fill="${toCssColor(highlight)}" />
+
+  <rect x="148" y="116" width="236" height="186" rx="26" fill="${toCssColor(shadowColor)}" />
+  <rect x="142" y="108" width="116" height="176" rx="18" fill="url(#page-left-gradient)" />
+  <rect x="254" y="108" width="116" height="176" rx="18" fill="url(#page-right-gradient)" />
+  <rect x="247" y="118" width="14" height="162" rx="7" fill="${toCssColor(rgba(134, 101, 54, 0.18))}" />
+
+  <rect x="168" y="146" width="60" height="8" rx="4" fill="${toCssColor(inkBlue)}" />
+  <rect x="168" y="166" width="74" height="8" rx="4" fill="${toCssColor(inkBlue)}" />
+  <rect x="168" y="186" width="58" height="8" rx="4" fill="${toCssColor(inkBlue)}" />
+  <rect x="278" y="150" width="54" height="8" rx="4" fill="${toCssColor(inkBlue)}" />
+  <rect x="278" y="170" width="62" height="8" rx="4" fill="${toCssColor(inkBlue)}" />
+  <rect x="278" y="190" width="48" height="8" rx="4" fill="${toCssColor(inkBlue)}" />
+
+  <path d="M302 108H336V224L319 248L302 224V108Z" fill="url(#bookmark-gradient)" />
+
+  <path d="M386 104L398 128L422 140L398 152L386 176L374 152L350 140L374 128L386 104Z" fill="${toCssColor(hex('#66E7DE'))}" />
+  <circle cx="386" cy="140" r="12" fill="${toCssColor(rgba(255, 255, 255, 0.34))}" />
+
+  <rect x="148" y="318" width="224" height="18" rx="9" fill="${toCssColor(rgba(255, 245, 223, 0.24))}" />
+  <rect x="148" y="344" width="176" height="12" rx="6" fill="${toCssColor(rgba(255, 245, 223, 0.18))}" />
+</svg>
+`
 }
 
 function rgba(r, g, b, a = 1) {
   return { r, g, b, a }
+}
+
+function toCssColor(color) {
+  return `rgba(${color.r}, ${color.g}, ${color.b}, ${Number(color.a.toFixed(3))})`
 }
 
 function setPixel(x, y, color) {
