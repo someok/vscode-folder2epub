@@ -31,8 +31,24 @@
         "command": "folder2epub.initEpub",
         "title": "初始化 epub",
         "category": "Folder2EPUB"
+      },
+      {
+        "command": "folder2epub.configureDefaultAuthor",
+        "title": "配置当前 Workspace 默认作者",
+        "category": "Folder2EPUB"
       }
     ],
+    "configuration": {
+      "title": "Folder2EPUB",
+      "properties": {
+        "folder2epub.defaultAuthor": {
+          "type": "string",
+          "default": "",
+          "scope": "window",
+          "markdownDescription": "初始化 `__t2e.data/metadata.yml` 时写入的当前 Workspace 默认作者。"
+        }
+      }
+    },
     "menus": {
       "explorer/context": [
         {

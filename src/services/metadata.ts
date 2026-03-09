@@ -13,11 +13,11 @@ export interface EpubMetadata {
   version: string
 }
 
-export function createDefaultMetadata(folderName: string): EpubMetadata {
+export function createDefaultMetadata(folderName: string, author: string): EpubMetadata {
   return {
     title: folderName,
     titleSuffix: '',
-    author: 'i3166',
+    author,
     description: '',
     cover: 'cover.jpg',
     version: '1.0.0',

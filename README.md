@@ -8,6 +8,7 @@
 
 核心用途：
 
+- 通过 Command Palette 配置当前 Workspace 默认作者
 - 对目标目录快速初始化 `__t2e.data/metadata.yml`
 - 基于目录内容生成 EPUB 3 文件
 - 支持 Markdown、TXT、Markdown 图片和 HTML `<img>`
@@ -21,6 +22,8 @@
   - `生成 epub`
   - `初始化 epub`
 - `初始化 epub`
+  - 支持通过 Command Palette 配置当前 Workspace 默认作者
+  - 未配置当前 Workspace 作者时，初始化会先提示用户
   - 创建 `__t2e.data/metadata.yml`
   - 已存在时阻止覆盖
 - `生成 epub`
@@ -40,7 +43,7 @@
 ```yaml
 title: 当前文件夹名
 titleSuffix: ''
-author: i3166
+author: [当前 Workspace 默认作者；未配置则为空]
 description: ''
 cover: cover.jpg
 version: 1.0.0
@@ -50,6 +53,12 @@ version: 1.0.0
 
 - `.md`
 - `.txt`
+
+当前 Workspace 作者配置方式：
+
+- 打开 Command Palette
+- 执行 `Folder2EPUB: 配置当前 Workspace 默认作者`
+- 之后执行 `初始化 epub` 时，会把该值写入 `metadata.yml` 的 `author`
 
 排序规则：
 
