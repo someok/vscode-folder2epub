@@ -1,8 +1,7 @@
-import type { ConfigureDefaultAuthorResult } from './configureDefaultAuthor'
 import { promises as fs } from 'node:fs'
 import * as vscode from 'vscode'
 
-import { getDefaultAuthor } from '../services/configuration'
+import { configureDefaultAuthorInteractively, getDefaultAuthor } from '../services/configuration'
 import { toErrorMessage } from '../services/errorMessage'
 import { getMetadataDirPath, getMetadataFilePath, hasMetadataFile, resolveFolderTarget } from '../services/folderMatcher'
 import { createDefaultMetadata, stringifyMetadata } from '../services/metadata'
@@ -31,7 +30,7 @@ export function registerInitEpubCommand(): vscode.Disposable {
         )
 
         if (selectedAction === CONFIGURE_AUTHOR_ACTION) {
-          const configurationResult = await vscode.commands.executeCommand<ConfigureDefaultAuthorResult>('folder2epub.configureDefaultAuthor')
+          const configurationResult = await configureDefaultAuthorInteractively()
           if (!configurationResult?.applied) {
             return
           }
