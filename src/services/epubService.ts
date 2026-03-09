@@ -25,28 +25,6 @@ body {
   padding: 0;
 }
 
-body {
-  line-height: 1.8;
-  color: #222;
-  background: #fff;
-  padding: 0 1.25rem 2rem;
-}
-
-.chapter {
-  max-width: 44rem;
-  margin: 0 auto;
-}
-
-.chapter h1 {
-  font-size: 1.6rem;
-  margin: 2rem 0 1.5rem;
-}
-
-.chapter p {
-  margin: 0 0 1em;
-  text-indent: 2em;
-}
-
 .chapter img {
   display: block;
   max-width: 100%;
