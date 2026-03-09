@@ -23,6 +23,52 @@ const MAIN_CSS = `html,
 body {
   margin: 0;
   padding: 0;
+  height: 100%;
+}
+
+.title-page-body {
+  height: 100%;
+  overflow: hidden;
+}
+
+.title-page {
+  box-sizing: border-box;
+  display: table;
+  width: 100%;
+  height: 100%;
+  padding: 4vh 1.5rem 3vh;
+  text-align: center;
+  break-inside: avoid;
+  page-break-inside: avoid;
+  -webkit-column-break-inside: avoid;
+}
+
+.title-page__content {
+  display: table-cell;
+  vertical-align: middle;
+}
+
+.title-page__cover {
+  display: block;
+  max-width: 100%;
+  width: auto;
+  height: auto;
+  max-height: 54vh;
+  margin: 0 auto 1rem;
+}
+
+.title-page__title {
+  margin: 0 auto;
+  text-align: center;
+  font-size: 1.5rem;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.title-page__author {
+  margin: 0.75rem 0 0;
+  font-size: 1rem;
+  line-height: 1.4;
 }
 
 .chapter img {
@@ -58,6 +104,12 @@ interface Chapter {
   id: string
   sourcePath: string
   title: string
+  xhtml: string
+}
+
+interface FrontMatterPage {
+  href: string
+  id: string
   xhtml: string
 }
 
@@ -98,6 +150,7 @@ export async function buildEpub(input: BuildEpubInput): Promise<BuildEpubResult>
   const chapterMap = new Map(chapters.map(chapter => [chapter.sourcePath, chapter] as const))
   const navEntries = buildNavEntries(input.nodes, chapterMap)
   const cover = await loadCoverAsset(input.rootFolderPath, input.metadata.cover)
+  const titlePage = createTitlePage(input.metadata, cover)
   const identifier = `urn:uuid:${randomUUID()}`
   const modifiedAt = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z')
 
@@ -110,7 +163,7 @@ export async function buildEpub(input: BuildEpubInput): Promise<BuildEpubResult>
     throw new Error('创建 EPUB 目录结构失败。')
   }
 
-  oebps.file('content.opf', createContentOpf(input.metadata, chapters, cover, contentImages, identifier, modifiedAt))
+  oebps.file('content.opf', createContentOpf(input.metadata, titlePage, chapters, cover, contentImages, identifier, modifiedAt))
   oebps.file('nav.xhtml', createNavXhtml(input.metadata, navEntries))
   oebps.file('toc.ncx', createTocNcx(input.metadata, navEntries, identifier))
   oebps.folder('styles')?.file('main.css', MAIN_CSS)
@@ -119,6 +172,8 @@ export async function buildEpub(input: BuildEpubInput): Promise<BuildEpubResult>
   if (!textFolder) {
     throw new Error('创建 EPUB 文本目录失败。')
   }
+
+  textFolder.file(path.posix.basename(titlePage.href), titlePage.xhtml)
 
   for (const chapter of chapters) {
     textFolder.file(path.posix.basename(chapter.href), chapter.xhtml)
@@ -193,8 +248,41 @@ function createChapterDocument(title: string, bodyHtml: string): string {
 `
 }
 
+function createTitlePage(metadata: EpubMetadata, cover: CoverAsset | undefined): FrontMatterPage {
+  const title = getBookDisplayTitle(metadata)
+  const author = metadata.author.trim()
+  const coverHtml = cover
+    ? `\n      <img class="title-page__cover" src="../${escapeXml(cover.href)}" alt="${escapeXml(title)} 封面" />`
+    : ''
+  const authorHtml = author
+    ? `\n      <p class="title-page__author">${escapeXml(author)}</p>`
+    : ''
+
+  return {
+    id: 'title-page',
+    href: 'text/title-page.xhtml',
+    xhtml: `<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <title>${escapeXml(title)}</title>
+    <link rel="stylesheet" type="text/css" href="../styles/main.css" />
+  </head>
+  <body class="title-page-body">
+    <section class="title-page" epub:type="titlepage">
+      <div class="title-page__content">${coverHtml}
+        <h1 class="title-page__title">${escapeXml(title)}</h1>${authorHtml}
+      </div>
+    </section>
+  </body>
+</html>
+`,
+  }
+}
+
 function createContentOpf(
   metadata: EpubMetadata,
+  titlePage: FrontMatterPage,
   chapters: Chapter[],
   cover: CoverAsset | undefined,
   contentImages: EpubAsset[],
@@ -209,6 +297,7 @@ function createContentOpf(
     '<item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav" />',
     '<item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml" />',
     '<item id="main-css" href="styles/main.css" media-type="text/css" />',
+    `<item id="${titlePage.id}" href="${titlePage.href}" media-type="application/xhtml+xml" />`,
     ...chapters.map(chapter => `<item id="${chapter.id}" href="${chapter.href}" media-type="application/xhtml+xml" />`),
     ...contentImages.map(asset => `<item id="${asset.id}" href="${asset.href}" media-type="${asset.mediaType}" />`),
   ]
@@ -217,7 +306,10 @@ function createContentOpf(
     manifestLines.push(`<item id="${cover.id}" href="${cover.href}" media-type="${cover.mediaType}" properties="cover-image" />`)
   }
 
-  const spineLines = chapters.map(chapter => `<itemref idref="${chapter.id}" />`)
+  const spineLines = [
+    `<itemref idref="${titlePage.id}" />`,
+    ...chapters.map(chapter => `<itemref idref="${chapter.id}" />`),
+  ]
   const descriptionXml = description ? `    <dc:description>${escapeXml(description)}</dc:description>\n` : ''
 
   return `<?xml version="1.0" encoding="UTF-8"?>
