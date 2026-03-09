@@ -3,14 +3,14 @@
   "tasks": [
     {
       "type": "shell",
-      "command": "pnpm run compile",
-      "label": "pnpm: compile",
+      "command": "npm run compile",
+      "label": "npm: compile",
       "problemMatcher": "$tsc"
     },
     {
       "type": "shell",
-      "command": "pnpm run watch",
-      "label": "pnpm: watch",
+      "command": "npm run watch",
+      "label": "npm: watch",
       "isBackground": true,
       "problemMatcher": "$tsc-watch"
     }

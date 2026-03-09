@@ -110,8 +110,8 @@ version: 1.0.0
 ## 开发
 
 ```bash
-pnpm install
-pnpm run compile
+npm install
+npm run compile
 ```
 
 调试方式：
@@ -150,7 +150,7 @@ pnpm run compile
 创建完成后，在终端登录 publisher：
 
 ```bash
-pnpm dlx @vscode/vsce login <publisher-id>
+npx @vscode/vsce login <publisher-id>
 ```
 
 登录时会提示输入刚创建的 Personal Access Token。
@@ -160,14 +160,14 @@ pnpm dlx @vscode/vsce login <publisher-id>
 先执行构建：
 
 ```bash
-pnpm install
-pnpm run compile
+npm install
+npm run compile
 ```
 
 然后打包成 `.vsix`：
 
 ```bash
-pnpm dlx @vscode/vsce package
+npx @vscode/vsce package
 ```
 
 执行成功后，会在项目根目录生成一个 `.vsix` 文件。
@@ -177,26 +177,26 @@ pnpm dlx @vscode/vsce package
 直接发布：
 
 ```bash
-pnpm dlx @vscode/vsce publish
+npx @vscode/vsce publish
 ```
 
 如果你希望发布时顺便递增版本号，可以使用：
 
 ```bash
-pnpm dlx @vscode/vsce publish patch
+npx @vscode/vsce publish patch
 ```
 
 也可以把 `patch` 改成 `minor` 或显式版本号，例如：
 
 ```bash
-pnpm dlx @vscode/vsce publish 0.0.2
+npx @vscode/vsce publish 0.0.2
 ```
 
 ### 4. 手动上传 VSIX
 
 如果你不想直接命令行发布，也可以：
 
-1. 先执行 `pnpm dlx @vscode/vsce package`
+1. 先执行 `npx @vscode/vsce package`
 2. 打开 Marketplace Publisher 管理页面
 3. 手动上传生成的 `.vsix`
 
@@ -211,9 +211,9 @@ pnpm dlx @vscode/vsce publish 0.0.2
 建议在发布前至少执行一次：
 
 ```bash
-pnpm run lint
-pnpm run compile
-pnpm dlx @vscode/vsce package
+npm run lint
+npm run compile
+npx @vscode/vsce package
 ```
 
 ## 已知限制

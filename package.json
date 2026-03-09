@@ -6,7 +6,14 @@
   "publisher": "local",
   "license": "MIT",
   "type": "commonjs",
-  "packageManager": "pnpm@10.0.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/someok/vscode-folder2epub"
+  },
+  "homepage": "https://github.com/someok/vscode-folder2epub",
+  "bugs": {
+    "url": "https://github.com/someok/vscode-folder2epub/issues"
+  },
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -76,7 +83,8 @@
     "generate:icon": "node scripts/generate-icon.mjs",
     "watch": "tsc -watch -p ./",
     "lint": "eslint .",
-    "vscode:prepublish": "pnpm run compile"
+    "vscode:prepublish": "npm run compile",
+    "package": "npm run compile && npx @vscode/vsce package"
   },
   "dependencies": {
     "jszip": "^3.10.1",
