@@ -38,12 +38,12 @@
         {
           "command": "folder2epub.generateEpub",
           "when": "explorerResourceIsFolder && resourceScheme == file",
-          "group": "navigation@50"
+          "group": "z_folder2epub@998"
         },
         {
           "command": "folder2epub.initEpub",
           "when": "explorerResourceIsFolder && resourceScheme == file",
-          "group": "navigation@51"
+          "group": "z_folder2epub@999"
         }
       ]
     }
