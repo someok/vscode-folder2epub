@@ -19,6 +19,7 @@
     "txt",
     "ebook"
   ],
+  "icon": "media/icon.png",
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
@@ -66,11 +67,13 @@
   },
   "files": [
     "dist",
+    "LICENSE",
     "README.md",
-    "LICENSE"
+    "media"
   ],
   "scripts": {
     "compile": "tsc -p ./",
+    "generate:icon": "node scripts/generate-icon.mjs",
     "watch": "tsc -watch -p ./",
     "lint": "eslint .",
     "vscode:prepublish": "pnpm run compile"
