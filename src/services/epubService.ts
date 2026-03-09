@@ -26,7 +26,6 @@ body {
 }
 
 body {
-  font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
   line-height: 1.8;
   color: #222;
   background: #fff;
@@ -339,7 +338,7 @@ async function createChapters(
 
   for (const [index, file] of files.entries()) {
     const rawText = await fs.readFile(file.fsPath, 'utf8')
-    let bodyHtml = renderPlainText(rawText)
+    let bodyHtml: string
 
     if (file.extension === '.md') {
       bodyHtml = await renderMarkdownChapter(
@@ -353,6 +352,9 @@ async function createChapters(
           return contentImageIndex
         },
       )
+    }
+    else {
+      bodyHtml = renderPlainText(rawText)
     }
 
     const order = String(index + 1).padStart(4, '0')
