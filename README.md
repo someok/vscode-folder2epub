@@ -172,10 +172,10 @@ npm run compile
 然后打包成 `.vsix`：
 
 ```bash
-npx @vscode/vsce package
+npm run package
 ```
 
-执行成功后，会在项目根目录生成一个 `.vsix` 文件。
+执行成功后，会在项目根目录下的 `out/` 目录生成一个 `.vsix` 文件。
 
 ### 3. 发布到 Marketplace
 
@@ -201,9 +201,9 @@ npx @vscode/vsce publish 0.0.2
 
 如果你不想直接命令行发布，也可以：
 
-1. 先执行 `npx @vscode/vsce package`
+1. 先执行 `npm run package`
 2. 打开 Marketplace Publisher 管理页面
-3. 手动上传生成的 `.vsix`
+3. 手动上传 `out/` 目录下生成的 `.vsix`
 
 ### 5. 发布前检查
 
@@ -218,7 +218,7 @@ npx @vscode/vsce publish 0.0.2
 ```bash
 npm run lint
 npm run compile
-npx @vscode/vsce package
+npm run package
 ```
 
 ## 已知限制
