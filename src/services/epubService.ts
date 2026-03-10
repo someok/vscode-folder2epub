@@ -217,10 +217,19 @@ export async function buildEpub(input: BuildEpubInput): Promise<BuildEpubResult>
  *
  * @param nodes 扫描得到的内容树。
  * @param chapterMap 文件路径到章节对象的映射。
+ * @param hiddenFilePath 隐藏的文件路径，用于排除从目录中生成。
  * @returns 可用于生成目录文件的导航节点。
  */
-function buildNavEntries(nodes: ContentNode[], chapterMap: Map<string, Chapter>): NavEntry[] {
-  return nodes.map((node) => {
+function buildNavEntries(
+  nodes: ContentNode[],
+  chapterMap: Map<string, Chapter>,
+  hiddenFilePath?: string,
+): NavEntry[] {
+  return nodes.flatMap((node) => {
+    if (node.kind === 'file' && node.fsPath === hiddenFilePath) {
+      return []
+    }
+
     if (node.kind === 'file') {
       const chapter = chapterMap.get(node.fsPath)
       if (!chapter) {
@@ -242,7 +251,7 @@ function buildNavEntries(nodes: ContentNode[], chapterMap: Map<string, Chapter>)
     return {
       title: node.displayName,
       href: firstChapter.href,
-      children: buildNavEntries(node.children, chapterMap),
+      children: buildNavEntries(node.children, chapterMap, node.indexFile?.fsPath),
     }
   })
 }

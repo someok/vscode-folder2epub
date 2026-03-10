@@ -9,6 +9,7 @@ export interface ContentFileNode {
   displayName: string
   extension: '.md' | '.txt'
   fsPath: string
+  isIndexFile: boolean
   kind: 'file'
   name: string
   order: number | null
@@ -20,6 +21,7 @@ export interface ContentFolderNode {
   displayName: string
   firstFile: ContentFileNode
   fsPath: string
+  indexFile?: ContentFileNode
   kind: 'folder'
   name: string
   order: number | null
@@ -101,12 +103,53 @@ function compareByName(left: ContentNode, right: ContentNode): number {
 }
 
 /**
- * 取得某个目录节点下用于代表该目录的首个文件。
+ * 优先查找当前目录直接包含的 `index` 文件。
  *
  * @param nodes 目录节点的直接子节点列表。
- * @returns 目录下排序后的首个文件；若不存在则返回 `undefined`。
+ * @returns 当前目录下排序最靠前的 `index` 文件；若不存在则返回 `undefined`。
+ */
+function findDirectIndexFile(nodes: ContentNode[]): ContentFileNode | undefined {
+  return nodes.find((node): node is ContentFileNode => node.kind === 'file' && node.isIndexFile)
+}
+
+/**
+ * 在当前目录及其子目录中查找可用于目录跳转的 `index` 文件。
+ *
+ * @param nodes 目录节点的直接子节点列表。
+ * @returns 找到的首个 `index` 文件；若不存在则返回 `undefined`。
+ */
+function findIndexFile(nodes: ContentNode[]): ContentFileNode | undefined {
+  const directIndexFile = findDirectIndexFile(nodes)
+  if (directIndexFile) {
+    return directIndexFile
+  }
+
+  for (const node of nodes) {
+    if (node.kind !== 'folder') {
+      continue
+    }
+
+    const nestedIndexFile = findIndexFile(node.children)
+    if (nestedIndexFile) {
+      return nestedIndexFile
+    }
+  }
+
+  return undefined
+}
+
+/**
+ * 取得某个目录节点下用于代表该目录的目标文件：若存在 `index` 文件则优先使用，否则回退到原有首个文件规则。
+ *
+ * @param nodes 目录节点的直接子节点列表。
+ * @returns 目录下用于跳转的目标文件；若不存在则返回 `undefined`。
  */
 function findFirstFile(nodes: ContentNode[]): ContentFileNode | undefined {
+  const indexFile = findIndexFile(nodes)
+  if (indexFile) {
+    return indexFile
+  }
+
   const firstNode = nodes[0]
   if (!firstNode) {
     return undefined
@@ -179,6 +222,16 @@ function parseOrderedName(name: string, isFile: boolean): ParsedName {
 }
 
 /**
+ * 判断去除数字前缀后的名称是否为目录索引名 `index`。
+ *
+ * @param displayName 去除排序前缀后的展示名。
+ * @returns 若名称为 `index` 则返回 `true`。
+ */
+function isIndexDisplayName(displayName: string): boolean {
+  return displayName.trim().toLowerCase() === 'index'
+}
+
+/**
  * 递归扫描目录，忽略 `__t2e.data` 和非 md/txt 文件。
  *
  * @param dirPath 当前扫描目录绝对路径。
@@ -200,6 +253,7 @@ async function scanDirectory(dirPath: string, relativePath: string): Promise<Con
     if (entry.isDirectory()) {
       // 空目录不会进入结果，只有至少包含一个可用文件时才保留该目录节点。
       const children = await scanDirectory(entryPath, entryRelativePath)
+      const indexFile = findDirectIndexFile(children)
       const firstFile = findFirstFile(children)
       if (!firstFile) {
         continue
@@ -215,6 +269,7 @@ async function scanDirectory(dirPath: string, relativePath: string): Promise<Con
         relativePath: entryRelativePath,
         children,
         firstFile,
+        indexFile,
       })
       continue
     }
@@ -237,6 +292,7 @@ async function scanDirectory(dirPath: string, relativePath: string): Promise<Con
       fsPath: entryPath,
       relativePath: entryRelativePath,
       extension: extension as '.md' | '.txt',
+      isIndexFile: isIndexDisplayName(ordered.displayName),
     })
   }
 
