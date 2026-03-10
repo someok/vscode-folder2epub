@@ -58,10 +58,16 @@ async function buildBook(rootDir) {
     throw new Error('生成结果缺少导航文件。')
   }
 
+  const firstChapterFile = archive.file('OEBPS/text/chapter-0001.xhtml')
+  if (!firstChapterFile) {
+    throw new Error('生成结果缺少首章文件。')
+  }
+
   return {
     content,
     chapterCount: result.chapterCount,
     navXhtml: await navFile.async('string'),
+    firstChapterXhtml: await firstChapterFile.async('string'),
   }
 }
 
@@ -72,7 +78,7 @@ test('子目录存在 index 文件时，目录优先链接该文件且不展示�
       '0010_第一章.md': '# 第一章',
     },
   }, async (rootDir) => {
-    const { content, chapterCount, navXhtml } = await buildBook(rootDir)
+    const { content, chapterCount, navXhtml, firstChapterXhtml } = await buildBook(rootDir)
     const folderNode = content.nodes[0]
 
     assert.equal(folderNode.kind, 'folder')
@@ -82,6 +88,8 @@ test('子目录存在 index 文件时，目录优先链接该文件且不展示�
     assert.match(navXhtml, /<a href="text\/chapter-0001\.xhtml">正文<\/a>/)
     assert.doesNotMatch(navXhtml, />index<\/a>/)
     assert.match(navXhtml, />第一章<\/a>/)
+    assert.doesNotMatch(firstChapterXhtml, /<h1>index<\/h1>/)
+    assert.match(firstChapterXhtml, /<h1>正文首页<\/h1>/)
   })
 })
 

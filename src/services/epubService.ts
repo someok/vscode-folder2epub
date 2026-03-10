@@ -261,9 +261,12 @@ function buildNavEntries(
  *
  * @param title 章节标题。
  * @param bodyHtml 已渲染好的章节正文 HTML。
+ * @param showHeading 是否输出章节顶部自动生成的标题。
  * @returns 章节 XHTML 文本。
  */
-function createChapterDocument(title: string, bodyHtml: string): string {
+function createChapterDocument(title: string, bodyHtml: string, showHeading: boolean): string {
+  const headingHtml = showHeading ? `\n      <h1>${escapeXml(title)}</h1>` : ''
+
   return `<?xml version="1.0" encoding="UTF-8"?>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="zh-CN">
   <head>
@@ -272,8 +275,7 @@ function createChapterDocument(title: string, bodyHtml: string): string {
     <link rel="stylesheet" type="text/css" href="../styles/main.css" />
   </head>
   <body>
-    <article class="chapter">
-      <h1>${escapeXml(title)}</h1>
+    <article class="chapter">${headingHtml}
       ${bodyHtml}
     </article>
   </body>
@@ -524,7 +526,7 @@ async function createChapters(
       href: `text/chapter-${order}.xhtml`,
       sourcePath: file.fsPath,
       title: file.displayName,
-      xhtml: createChapterDocument(file.displayName, bodyHtml),
+      xhtml: createChapterDocument(file.displayName, bodyHtml, !file.isIndexFile),
     })
   }
 
