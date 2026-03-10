@@ -3,6 +3,11 @@
 src/**
 scripts/**
 example/**
+.idea/**
+.github/**
+.travis.yml
+test/**
+AGENTS.md
 TASK.md
 .editorconfig
 .gitignore
