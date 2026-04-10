@@ -2,7 +2,7 @@
   "name": "vscode-folder2epub",
   "displayName": "Folder2EPUB",
   "description": "将符合条件的文件夹转换为 EPUB 的 VS Code 扩展",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "publisher": "someok",
   "license": "MIT",
   "type": "commonjs",
