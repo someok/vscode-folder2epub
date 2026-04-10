@@ -197,6 +197,20 @@ function parseOrderedName(name: string, isFile: boolean): ParsedName {
   }
 
   if (cursor === 0 || cursor >= rawName.length || rawName[cursor] !== '_') {
+    // 特殊处理形如 __xxx 的名称，也就是可能有一个或多个连续下划线开头的情况，视作 displayName 为 xxx，order 为 0
+    if (cursor === 0 && rawName.length > 1 && rawName[0] === '_') {
+      let nameStart = 0
+      while (nameStart < rawName.length && rawName[nameStart] === '_') {
+        nameStart += 1
+      }
+      if (nameStart < rawName.length) {
+        return {
+          displayName: rawName.slice(nameStart).trim() || rawName,
+          order: 0,
+        }
+      }
+    }
+
     return {
       displayName: rawName.trim() || rawName,
       order: null,
