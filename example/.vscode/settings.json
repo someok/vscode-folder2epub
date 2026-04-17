@@ -1,4 +1,5 @@
 {
   "folder2epub.defaultAuthor": "测试员",
-  "explorer.sortOrder": "mixed"
+  "explorer.sortOrder": "mixed",
+  "wordFrequency.tokenizerEngine": "jieba"
 }
