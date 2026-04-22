@@ -2,6 +2,8 @@ import type { Uri } from 'vscode'
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
 
+import { msg } from './l10n'
+
 export const METADATA_DIRNAME = '__t2e.data'
 export const METADATA_FILENAME = 'metadata.yml'
 export const EPUB_CONFIG_FILENAME = '__epub.yml'
@@ -20,12 +22,12 @@ export interface FolderTarget {
  */
 export async function resolveFolderTarget(uri?: Uri): Promise<FolderTarget> {
   if (!uri || uri.scheme !== 'file') {
-    throw new Error('请在资源管理器中对本地目录执行此命令。')
+    throw new Error(msg('error.notInExplorer'))
   }
 
   const stat = await fs.stat(uri.fsPath).catch(() => undefined)
   if (!stat?.isDirectory()) {
-    throw new Error('当前选中的资源不是目录。')
+    throw new Error(msg('error.notADirectory'))
   }
 
   return {

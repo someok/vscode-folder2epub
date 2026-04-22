@@ -6,6 +6,7 @@ import { scanContentTree } from '../services/contentScanner'
 import { buildEpub } from '../services/epubService'
 import { toErrorMessage } from '../services/errorMessage'
 import { hasMetadataFile, resolveFolderTarget } from '../services/folderMatcher'
+import { msg } from '../services/l10n'
 import { formatBookFileName, readMetadata } from '../services/metadata'
 import { resolveOutputDir } from '../services/outputResolver'
 
@@ -20,32 +21,32 @@ export function registerGenerateEpubCommand(): vscode.Disposable {
       const target = await resolveFolderTarget(uri)
 
       if (!await hasMetadataFile(target.fsPath)) {
-        void vscode.window.showWarningMessage('当前目录缺少 `__t2e.data/metadata.yml`，请先执行“初始化 epub”。')
+        void vscode.window.showWarningMessage(msg('command.generateEpub.noMetadata'))
         return
       }
 
       const result = await vscode.window.withProgress(
         {
           location: vscode.ProgressLocation.Notification,
-          title: '生成 epub',
+          title: msg('command.generateEpub.progressTitle'),
           cancellable: false,
         },
         async (progress) => {
           // 生成过程拆成几个明显阶段，便于在 VS Code 通知中给出可感知的进度反馈。
-          progress.report({ message: '读取 metadata.yml' })
+          progress.report({ message: msg('progress.readMetadata') })
           const metadata = await readMetadata(target.fsPath)
 
-          progress.report({ message: '扫描目录内容' })
+          progress.report({ message: msg('progress.scanContent') })
           const content = await scanContentTree(target.fsPath)
           if (!content.files.length) {
-            throw new Error('当前目录中没有可生成 EPUB 的 md/txt 文件。')
+            throw new Error(msg('error.noContentFiles'))
           }
 
-          progress.report({ message: '解析输出目录' })
+          progress.report({ message: msg('progress.resolveOutput') })
           const outputDir = await resolveOutputDir(target.fsPath)
           const outputFilePath = path.join(outputDir, formatBookFileName(metadata))
 
-          progress.report({ message: '打包 EPUB 3' })
+          progress.report({ message: msg('progress.buildEpub') })
           return buildEpub({
             rootFolderPath: target.fsPath,
             metadata,
@@ -55,10 +56,10 @@ export function registerGenerateEpubCommand(): vscode.Disposable {
         },
       )
 
-      void vscode.window.showInformationMessage(`EPUB 已生成：${result.outputFilePath}`)
+      void vscode.window.showInformationMessage(msg('command.generateEpub.success', result.outputFilePath))
     }
     catch (error) {
-      void vscode.window.showErrorMessage(`生成 epub 失败：${toErrorMessage(error)}`)
+      void vscode.window.showErrorMessage(msg('command.generateEpub.error', toErrorMessage(error)))
     }
   })
 }

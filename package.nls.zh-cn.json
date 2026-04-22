@@ -1,0 +1,9 @@
+{
+  "extension.description": "将符合条件的文件夹转换为 EPUB 的 VS Code 扩展",
+  "command.generateEpub.title": "生成 epub",
+  "command.initEpub.title": "初始化 epub",
+  "command.createT2eIgnore.title": "新增 .t2eignore",
+  "command.configureDefaultAuthor.title": "配置当前 Workspace 默认作者",
+  "config.title": "Folder2EPUB",
+  "config.defaultAuthor.description": "初始化 `__t2e.data/metadata.yml` 时写入的当前 Workspace 默认作者。"
+}

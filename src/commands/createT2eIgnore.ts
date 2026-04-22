@@ -4,6 +4,7 @@ import * as vscode from 'vscode'
 
 import { toErrorMessage } from '../services/errorMessage'
 import { exists, resolveFolderTarget } from '../services/folderMatcher'
+import { msg } from '../services/l10n'
 import { T2E_IGNORE_FILENAME } from '../services/t2eIgnore'
 
 /**
@@ -18,15 +19,15 @@ export function registerCreateT2eIgnoreCommand(): vscode.Disposable {
       const filePath = path.join(target.fsPath, T2E_IGNORE_FILENAME)
 
       if (await exists(filePath)) {
-        void vscode.window.showWarningMessage(`该目录下已存在 ${T2E_IGNORE_FILENAME} 文件。`)
+        void vscode.window.showWarningMessage(msg('command.createT2eIgnore.alreadyExists', T2E_IGNORE_FILENAME))
         return
       }
 
       await fs.writeFile(filePath, '', 'utf8')
-      void vscode.window.showInformationMessage(`已创建 ${T2E_IGNORE_FILENAME} 文件。`)
+      void vscode.window.showInformationMessage(msg('command.createT2eIgnore.success', T2E_IGNORE_FILENAME))
     }
     catch (error) {
-      void vscode.window.showErrorMessage(`创建 ${T2E_IGNORE_FILENAME} 失败：${toErrorMessage(error)}`)
+      void vscode.window.showErrorMessage(msg('command.createT2eIgnore.error', T2E_IGNORE_FILENAME, toErrorMessage(error)))
     }
   })
 }

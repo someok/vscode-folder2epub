@@ -1,8 +1,9 @@
+import type { IgnoreFilter } from './t2eIgnore'
 import { promises as fs } from 'node:fs'
-import path from 'node:path'
 
+import path from 'node:path'
 import { METADATA_DIRNAME } from './folderMatcher'
-import { createIgnoreFilter, type IgnoreFilter, readT2eIgnore } from './t2eIgnore'
+import { createIgnoreFilter, readT2eIgnore } from './t2eIgnore'
 
 const SUPPORTED_EXTENSIONS = new Set(['.md', '.txt'])
 

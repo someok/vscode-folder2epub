@@ -2,6 +2,7 @@ import * as vscode from 'vscode'
 
 import { configureDefaultAuthorInteractively } from '../services/configuration'
 import { toErrorMessage } from '../services/errorMessage'
+import { msg } from '../services/l10n'
 
 /**
  * 注册“配置当前 Workspace 默认作者”命令。
@@ -14,7 +15,7 @@ export function registerConfigureDefaultAuthorCommand(): vscode.Disposable {
       return await configureDefaultAuthorInteractively()
     }
     catch (error) {
-      void vscode.window.showErrorMessage(`配置当前 Workspace 默认作者失败：${toErrorMessage(error)}`)
+      void vscode.window.showErrorMessage(msg('command.configureDefaultAuthor.error', toErrorMessage(error)))
       return {
         applied: false,
         author: '',

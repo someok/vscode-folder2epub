@@ -9,6 +9,8 @@ import JSZip from 'jszip'
 import MarkdownIt from 'markdown-it'
 
 import { exists, METADATA_DIRNAME } from './folderMatcher'
+import { msg } from './l10n'
+
 import { getBookAuthor, getBookDisplayTitle } from './metadata'
 
 const CONTAINER_XML = `<?xml version="1.0" encoding="UTF-8"?>
@@ -151,7 +153,7 @@ export async function buildEpub(input: BuildEpubInput): Promise<BuildEpubResult>
   // 先将章节正文和正文内引用的图片整理成可直接写入 OEBPS 的结构。
   const { chapters, contentImages } = await createChapters(input.nodes, markdown, input.rootFolderPath)
   if (!chapters.length) {
-    throw new Error('目录中没有可生成 EPUB 的 md/txt 文件。')
+    throw new Error(msg('error.epub.noChapters'))
   }
 
   // 目录、封面和标题页都建立在“章节已经确定”这个前提之上。
@@ -168,7 +170,7 @@ export async function buildEpub(input: BuildEpubInput): Promise<BuildEpubResult>
 
   const oebps = zip.folder('OEBPS')
   if (!oebps) {
-    throw new Error('创建 EPUB 目录结构失败。')
+    throw new Error(msg('error.epub.createOebpsFailed'))
   }
 
   // OPF、导航页、NCX 和样式表是阅读器识别书籍结构所必需的核心文件。
@@ -179,7 +181,7 @@ export async function buildEpub(input: BuildEpubInput): Promise<BuildEpubResult>
 
   const textFolder = oebps.folder('text')
   if (!textFolder) {
-    throw new Error('创建 EPUB 文本目录失败。')
+    throw new Error(msg('error.epub.createTextFolderFailed'))
   }
 
   // 标题页放在 spine 首位，确保阅读器打开书时优先展示该页。
@@ -233,7 +235,7 @@ function buildNavEntries(
     if (node.kind === 'file') {
       const chapter = chapterMap.get(node.fsPath)
       if (!chapter) {
-        throw new Error(`缺少章节映射：${node.relativePath}`)
+        throw new Error(msg('error.epub.missingChapterMapping', node.relativePath))
       }
 
       return {
@@ -245,7 +247,7 @@ function buildNavEntries(
 
     const firstChapter = chapterMap.get(node.firstFile.fsPath)
     if (!firstChapter) {
-      throw new Error(`缺少目录章节映射：${node.relativePath}`)
+      throw new Error(msg('error.epub.missingNavMapping', node.relativePath))
     }
 
     return {
@@ -294,7 +296,7 @@ function createTitlePage(metadata: EpubMetadata, cover: CoverAsset | undefined):
   const title = getBookDisplayTitle(metadata)
   const author = metadata.author.trim()
   const coverHtml = cover
-    ? `\n      <img class="title-page__cover" src="../${escapeXml(cover.href)}" alt="${escapeXml(title)} 封面" />`
+    ? `\n      <img class="title-page__cover" src="../${escapeXml(cover.href)}" alt="${escapeXml(title)} ${escapeXml(msg('epub.coverAltSuffix'))}" />`
     : ''
   const authorHtml = author
     ? `\n      <p class="title-page__author">${escapeXml(author)}</p>`
@@ -412,11 +414,11 @@ function createNavXhtml(metadata: EpubMetadata, navEntries: NavEntry[]): string 
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="zh-CN">
   <head>
     <meta charset="utf-8" />
-    <title>${escapeXml(title)} - 目录</title>
+    <title>${escapeXml(title)} - ${escapeXml(msg('epub.navTitle'))}</title>
   </head>
   <body>
     <nav epub:type="toc" id="toc">
-      <h1>目录</h1>
+      <h1>${escapeXml(msg('epub.navTitle'))}</h1>
       <ol>
 ${createNavList(navEntries)}
       </ol>
@@ -602,18 +604,18 @@ async function loadCoverAsset(rootFolderPath: string, configuredCover: string): 
 
   const coverPath = path.join(rootFolderPath, METADATA_DIRNAME, coverName)
   if (!await exists(coverPath)) {
-    throw new Error(`封面文件不存在：__t2e.data/${coverName}`)
+    throw new Error(msg('error.cover.notFound', coverName))
   }
 
   const stat = await fs.stat(coverPath)
   if (!stat.isFile()) {
-    throw new Error(`封面路径不是文件：__t2e.data/${coverName}`)
+    throw new Error(msg('error.cover.notAFile', coverName))
   }
 
   const extension = path.extname(coverPath).toLowerCase()
   const mediaType = getMediaType(extension)
   if (!mediaType) {
-    throw new Error(`封面格式不支持：${coverName}`)
+    throw new Error(msg('error.cover.unsupportedFormat', coverName))
   }
 
   return {
@@ -810,18 +812,18 @@ async function getOrCreateImageAsset(
 
   // 这里同时承担图片存在性、文件类型和格式合法性的完整校验职责。
   if (!await exists(sourcePath)) {
-    throw new Error(createMarkdownImageErrorMessage('Markdown 图片不存在', markdownFilePath, sourcePath, rawSource))
+    throw new Error(createMarkdownImageErrorMessage(msg('error.markdownImage.missing'), markdownFilePath, sourcePath, rawSource))
   }
 
   const stat = await fs.stat(sourcePath)
   if (!stat.isFile()) {
-    throw new Error(createMarkdownImageErrorMessage('Markdown 图片路径不是文件', markdownFilePath, sourcePath, rawSource))
+    throw new Error(createMarkdownImageErrorMessage(msg('error.markdownImage.notAFile'), markdownFilePath, sourcePath, rawSource))
   }
 
   const extension = path.extname(sourcePath).toLowerCase()
   const mediaType = getMediaType(extension)
   if (!mediaType) {
-    throw new Error(createMarkdownImageErrorMessage('Markdown 图片格式不支持', markdownFilePath, sourcePath, rawSource))
+    throw new Error(createMarkdownImageErrorMessage(msg('error.markdownImage.unsupportedFormat'), markdownFilePath, sourcePath, rawSource))
   }
 
   const index = String(nextAssetIndex()).padStart(4, '0')
@@ -858,7 +860,7 @@ function isExternalImageSource(source: string): boolean {
 function resolveMarkdownImagePath(rootFolderPath: string, markdownFilePath: string, rawSource: string): string {
   const source = stripQueryAndHash(rawSource)
   if (!source) {
-    throw new Error(`Markdown 图片路径为空：${path.basename(markdownFilePath)}`)
+    throw new Error(msg('error.markdownImage.emptyPath', path.basename(markdownFilePath)))
   }
 
   const decodedSource = safeDecodeUri(source)
@@ -868,7 +870,7 @@ function resolveMarkdownImagePath(rootFolderPath: string, markdownFilePath: stri
 
   const relativeToRoot = path.relative(rootFolderPath, resolvedPath)
   if (relativeToRoot.startsWith('..') || path.isAbsolute(relativeToRoot)) {
-    throw new Error(`Markdown 图片超出当前目录范围：${rawSource}（文件：${toPortableRelativePath(rootFolderPath, markdownFilePath)}）`)
+    throw new Error(msg('error.markdownImage.outOfRange', rawSource, toPortableRelativePath(rootFolderPath, markdownFilePath)))
   }
 
   return resolvedPath
@@ -976,7 +978,7 @@ function createMarkdownImageErrorMessage(
   resolvedPath: string,
   rawSource: string,
 ): string {
-  return `${prefix}：${formatPathRelativeToMarkdown(markdownFilePath, resolvedPath, rawSource)}（文件：${path.basename(markdownFilePath)}）`
+  return msg('error.markdownImage.detail', prefix, formatPathRelativeToMarkdown(markdownFilePath, resolvedPath, rawSource), path.basename(markdownFilePath))
 }
 
 /**
