@@ -7,6 +7,7 @@ const currentFilePath = fileURLToPath(import.meta.url)
 const projectRoot = path.resolve(path.dirname(currentFilePath), '..')
 
 const isWatch = process.argv.includes('--watch')
+const production = process.argv.includes('--production')
 
 /** @type {import('esbuild').BuildOptions} */
 const config = {
@@ -16,9 +17,13 @@ const config = {
   platform: 'node',
   target: 'node20',
   format: 'cjs',
-  sourcemap: isWatch,
   external: ['vscode'],
   mainFields: ['module', 'main'],
+  sourcemap: !production,
+  minify: production,
+  define: {
+    'process.env.NODE_ENV': JSON.stringify(production ? 'production' : 'development'),
+  },
 }
 
 async function main() {

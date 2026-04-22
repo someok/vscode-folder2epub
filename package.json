@@ -2,7 +2,7 @@
   "name": "vscode-folder2epub",
   "displayName": "Folder2EPUB",
   "description": "%extension.description%",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "publisher": "someok",
   "license": "MIT",
   "type": "commonjs",
@@ -11,13 +11,14 @@
   "l10n": "./l10n",
   "scripts": {
     "compile": "node scripts/build.mjs",
+    "compile:prod": "node scripts/build.mjs --production",
     "generate:icon": "node scripts/generate-icon.mjs",
     "watch": "node scripts/build.mjs --watch",
     "clean": "rimraf dist release",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "vscode:prepublish": "npm run compile",
-    "package": "npm run compile && node scripts/package-vsix.mjs"
+    "vscode:prepublish": "npm run compile:prod",
+    "package": "npm run compile:prod && node scripts/package-vsix.mjs"
   },
   "repository": {
     "type": "git",
