@@ -16,7 +16,7 @@ const config = {
   platform: 'node',
   target: 'node20',
   format: 'cjs',
-  sourcemap: true,
+  sourcemap: isWatch,
   external: ['vscode'],
   mainFields: ['module', 'main'],
 }
