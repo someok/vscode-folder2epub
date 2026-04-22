@@ -2,10 +2,13 @@
   "name": "vscode-folder2epub",
   "displayName": "Folder2EPUB",
   "description": "%extension.description%",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "publisher": "someok",
   "license": "MIT",
   "type": "commonjs",
+  "icon": "media/icon.png",
+  "main": "./dist/extension.js",
+  "l10n": "./l10n",
   "scripts": {
     "compile": "node scripts/build.mjs",
     "generate:icon": "node scripts/generate-icon.mjs",
@@ -36,8 +39,6 @@
     "txt",
     "ebook"
   ],
-  "icon": "media/icon.png",
-  "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
