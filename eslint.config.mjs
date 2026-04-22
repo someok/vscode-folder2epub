@@ -10,6 +10,8 @@ export default antfu(
       '**/TASK.md',
       'example/**',
     ],
+  },
+  {
     rules: {
       'no-console': 'off',
       'jsonc/sort-array-values': 'off',
