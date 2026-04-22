@@ -1,12 +1,9 @@
-import { l10n } from 'vscode'
+import * as vscode from 'vscode'
 
 /**
- * 获取本地化消息文本。
+ * VS Code 本地化对象，供业务代码直接调用 l10n.t()。
  *
- * @param key 消息键名，对应 l10n/bundle.l10n*.json 中的 key。
- * @param args 模板参数，支持 {0}、{1} 等占位符替换。
- * @returns 本地化后的文本。
+ * 注意：vscode.l10n.t 的第一个参数必须是默认英文消息文本（而非自定义 key），
+ * 否则静态提取工具和运行时回退都无法正确工作。
  */
-export function msg(key: string, ...args: any[]): string {
-  return l10n.t(key, ...args)
-}
+export const l10n = vscode.l10n

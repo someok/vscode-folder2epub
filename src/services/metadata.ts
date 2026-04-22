@@ -3,7 +3,7 @@ import { promises as fs } from 'node:fs'
 import YAML from 'yaml'
 
 import { getMetadataFilePath } from './folderMatcher'
-import { msg } from './l10n'
+import { l10n } from './l10n'
 
 export interface EpubMetadata {
   author: string
@@ -43,13 +43,13 @@ export async function readMetadata(folderPath: string): Promise<EpubMetadata> {
   const rawValue = YAML.parse(rawText)
 
   if (!rawValue || typeof rawValue !== 'object') {
-    throw new Error(msg('error.invalidMetadata'))
+    throw new Error(l10n.t('Invalid metadata.yml content.'))
   }
 
   const metadata = rawValue as Record<string, unknown>
 
   return {
-    title: toStringValue(metadata.title, msg('fallback.unnamed')),
+    title: toStringValue(metadata.title, l10n.t('Unnamed')),
     titleSuffix: toStringValue(metadata.titleSuffix),
     author: toStringValue(metadata.author),
     description: toStringValue(metadata.description),
@@ -75,7 +75,7 @@ export function stringifyMetadata(metadata: EpubMetadata): string {
  * @returns 规范化后的作者名。
  */
 export function getBookAuthor(metadata: EpubMetadata): string {
-  return metadata.author.trim() || msg('fallback.unknownAuthor')
+  return metadata.author.trim() || l10n.t('Unknown')
 }
 
 /**

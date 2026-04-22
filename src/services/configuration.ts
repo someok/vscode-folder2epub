@@ -1,6 +1,6 @@
 import * as vscode from 'vscode'
 
-import { msg } from './l10n'
+import { l10n } from './l10n'
 
 const CONFIGURATION_SECTION = 'folder2epub'
 const DEFAULT_AUTHOR_KEY = 'defaultAuthor'
@@ -31,7 +31,7 @@ export function getDefaultAuthor(): string {
  */
 export async function setDefaultAuthor(author: string): Promise<void> {
   if (!vscode.workspace.workspaceFile && !vscode.workspace.workspaceFolders?.length) {
-    throw new Error(msg('error.noWorkspace'))
+    throw new Error(l10n.t('Please open a workspace before configuring the default author.'))
   }
 
   await vscode.workspace
@@ -47,9 +47,9 @@ export async function setDefaultAuthor(author: string): Promise<void> {
 export async function configureDefaultAuthorInteractively(): Promise<ConfigureDefaultAuthorResult> {
   const currentAuthor = getDefaultAuthor()
   const inputValue = await vscode.window.showInputBox({
-    title: msg('ui.inputBox.authorTitle'),
-    prompt: msg('ui.inputBox.authorPrompt'),
-    placeHolder: msg('ui.inputBox.authorPlaceholder'),
+    title: l10n.t('Configure Default Author for Workspace'),
+    prompt: l10n.t('Used as the author in __t2e.data/metadata.yml during initialization. Leave empty to clear.'),
+    placeHolder: l10n.t('e.g. Lu Xun'),
     value: currentAuthor,
     ignoreFocusOut: true,
   })
@@ -66,10 +66,10 @@ export async function configureDefaultAuthorInteractively(): Promise<ConfigureDe
 
   // 这里顺手返回最新值，便于调用方直接继续初始化流程而无需再次读取配置。
   if (author) {
-    void vscode.window.showInformationMessage(msg('command.configureDefaultAuthor.updated', author))
+    void vscode.window.showInformationMessage(l10n.t('Updated default author for workspace: {0}', author))
   }
   else {
-    void vscode.window.showInformationMessage(msg('command.configureDefaultAuthor.cleared'))
+    void vscode.window.showInformationMessage(l10n.t('Cleared default author configuration for workspace.'))
   }
 
   return {

@@ -4,11 +4,11 @@ import * as vscode from 'vscode'
 import { configureDefaultAuthorInteractively, getDefaultAuthor } from '../services/configuration'
 import { toErrorMessage } from '../services/errorMessage'
 import { getMetadataDirPath, getMetadataFilePath, hasMetadataFile, resolveFolderTarget } from '../services/folderMatcher'
-import { msg } from '../services/l10n'
+import { l10n } from '../services/l10n'
 import { createDefaultMetadata, stringifyMetadata } from '../services/metadata'
 
-const CONFIGURE_AUTHOR_ACTION = msg('command.initEpub.action.configure')
-const CONTINUE_WITH_EMPTY_AUTHOR_ACTION = msg('command.initEpub.action.skip')
+const CONFIGURE_AUTHOR_ACTION = l10n.t('Configure Now')
+const CONTINUE_WITH_EMPTY_AUTHOR_ACTION = l10n.t('Skip This Time')
 
 /**
  * 注册“初始化 epub”命令，负责创建 `__t2e.data/metadata.yml`。
@@ -21,7 +21,7 @@ export function registerInitEpubCommand(): vscode.Disposable {
       const target = await resolveFolderTarget(uri)
 
       if (await hasMetadataFile(target.fsPath)) {
-        void vscode.window.showWarningMessage(msg('command.initEpub.alreadyExists'))
+        void vscode.window.showWarningMessage(l10n.t('`__t2e.data/metadata.yml` already exists. Initialization aborted.'))
         return
       }
 
@@ -31,7 +31,7 @@ export function registerInitEpubCommand(): vscode.Disposable {
       if (!author) {
         // 初始化模板时优先使用当前 Workspace 的默认作者，缺失时再引导用户补充。
         const selectedAction = await vscode.window.showWarningMessage(
-          msg('command.initEpub.noAuthorPrompt'),
+          l10n.t('Default author is not configured for this workspace. Configure now?'),
           CONFIGURE_AUTHOR_ACTION,
           CONTINUE_WITH_EMPTY_AUTHOR_ACTION,
         )
@@ -53,10 +53,10 @@ export function registerInitEpubCommand(): vscode.Disposable {
       const metadata = createDefaultMetadata(target.name, author)
       await fs.writeFile(getMetadataFilePath(target.fsPath), stringifyMetadata(metadata), 'utf8')
 
-      void vscode.window.showInformationMessage(msg('command.initEpub.success', target.name))
+      void vscode.window.showInformationMessage(l10n.t('EPUB data directory initialized: {0}', target.name))
     }
     catch (error) {
-      void vscode.window.showErrorMessage(msg('command.initEpub.error', toErrorMessage(error)))
+      void vscode.window.showErrorMessage(l10n.t('Failed to initialize EPUB: {0}', toErrorMessage(error)))
     }
   })
 }

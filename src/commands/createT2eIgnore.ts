@@ -4,7 +4,7 @@ import * as vscode from 'vscode'
 
 import { toErrorMessage } from '../services/errorMessage'
 import { exists, resolveFolderTarget } from '../services/folderMatcher'
-import { msg } from '../services/l10n'
+import { l10n } from '../services/l10n'
 import { T2E_IGNORE_FILENAME } from '../services/t2eIgnore'
 
 /**
@@ -19,15 +19,15 @@ export function registerCreateT2eIgnoreCommand(): vscode.Disposable {
       const filePath = path.join(target.fsPath, T2E_IGNORE_FILENAME)
 
       if (await exists(filePath)) {
-        void vscode.window.showWarningMessage(msg('command.createT2eIgnore.alreadyExists', T2E_IGNORE_FILENAME))
+        void vscode.window.showWarningMessage(l10n.t('{0} already exists in this directory.', T2E_IGNORE_FILENAME))
         return
       }
 
       await fs.writeFile(filePath, '', 'utf8')
-      void vscode.window.showInformationMessage(msg('command.createT2eIgnore.success', T2E_IGNORE_FILENAME))
+      void vscode.window.showInformationMessage(l10n.t('Created {0} file.', T2E_IGNORE_FILENAME))
     }
     catch (error) {
-      void vscode.window.showErrorMessage(msg('command.createT2eIgnore.error', T2E_IGNORE_FILENAME, toErrorMessage(error)))
+      void vscode.window.showErrorMessage(l10n.t('Failed to create {0}: {1}', T2E_IGNORE_FILENAME, toErrorMessage(error)))
     }
   })
 }

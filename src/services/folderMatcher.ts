@@ -2,7 +2,7 @@ import type { Uri } from 'vscode'
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
 
-import { msg } from './l10n'
+import { l10n } from './l10n'
 
 export const METADATA_DIRNAME = '__t2e.data'
 export const METADATA_FILENAME = 'metadata.yml'
@@ -22,12 +22,12 @@ export interface FolderTarget {
  */
 export async function resolveFolderTarget(uri?: Uri): Promise<FolderTarget> {
   if (!uri || uri.scheme !== 'file') {
-    throw new Error(msg('error.notInExplorer'))
+    throw new Error(l10n.t('Please execute this command on a local directory in the Explorer.'))
   }
 
   const stat = await fs.stat(uri.fsPath).catch(() => undefined)
   if (!stat?.isDirectory()) {
-    throw new Error(msg('error.notADirectory'))
+    throw new Error(l10n.t('The selected resource is not a directory.'))
   }
 
   return {

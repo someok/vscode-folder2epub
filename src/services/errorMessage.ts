@@ -4,12 +4,12 @@
  * @param error 任意来源的错误对象或值。
  * @returns 可直接显示在 UI 上的错误文本。
  */
-import { msg } from './l10n'
+import { l10n } from './l10n'
 
 export function toErrorMessage(error: unknown): string {
   if (error instanceof Error) {
     return error.message
   }
 
-  return msg('error.unknown')
+  return l10n.t('An unknown error occurred.')
 }
