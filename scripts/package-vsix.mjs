@@ -4,6 +4,8 @@ import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
+const RELEASE_DIR = 'release'
+
 try {
   await main()
 }
@@ -21,7 +23,7 @@ async function main() {
   const projectRoot = path.resolve(path.dirname(currentFilePath), '..')
   const packageJsonPath = path.join(projectRoot, 'package.json')
   const packageJson = JSON.parse(await readFile(packageJsonPath, 'utf8'))
-  const outputDirPath = path.join(projectRoot, 'out')
+  const outputDirPath = path.join(projectRoot, RELEASE_DIR)
   const outputFilePath = path.join(outputDirPath, `${packageJson.name}-${packageJson.version}.vsix`)
 
   await mkdir(outputDirPath, { recursive: true })
