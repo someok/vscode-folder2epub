@@ -7,9 +7,9 @@
   "license": "MIT",
   "type": "commonjs",
   "scripts": {
-    "compile": "tsc -p ./",
+    "compile": "node scripts/build.mjs",
     "generate:icon": "node scripts/generate-icon.mjs",
-    "watch": "tsc -watch -p ./",
+    "watch": "node scripts/build.mjs --watch",
     "clean": "rimraf dist release",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
@@ -103,6 +103,7 @@
     "@types/markdown-it": "^14.1.2",
     "@types/node": "^25.6.0",
     "@types/vscode": "^1.116.0",
+    "esbuild": "^0.28.0",
     "eslint": "^9.21.0",
     "rimraf": "^6.1.3",
     "typescript": "^6.0.3"
