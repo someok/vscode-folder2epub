@@ -14,6 +14,7 @@
 - 支持 Markdown、TXT、Markdown 图片和 HTML `<img>`
 - 支持按数字前缀对章节和子目录排序
 - 支持通过父级 `__epub.yml` 配置输出目录
+- 支持 `.t2eignore` 文件按 `.gitignore` 语法过滤目录与文件
 
 ## 当前已实现
 
@@ -21,15 +22,21 @@
 - 资源管理器目录右键菜单
   - `生成 epub`
   - `初始化 epub`
+  - `新增 .t2eignore`
 - `初始化 epub`
   - 支持通过 Command Palette 配置当前 Workspace 默认作者
   - 未配置当前 Workspace 作者时，初始化会先提示用户
   - 创建 `__t2e.data/metadata.yml`
   - 已存在时阻止覆盖
+- `新增 .t2eignore`
+  - 在选定目录下创建空的 `.t2eignore` 文件
+  - 若文件已存在则弹窗提示，不会覆盖
 - `生成 epub`
   - 校验 `__t2e.data/metadata.yml`
   - 递归扫描目录中的 `.md` / `.txt`
   - 按数字前缀排序
+  - 自动识别各层级 `.t2eignore` 并按 `.gitignore` 语法过滤文件和目录
+  - `__t2e.data` 为系统保留目录，不受 `.t2eignore` 影响
   - 子目录若存在名为 `index` 的 `.md` / `.txt`（支持如 `0000__index.md` 的数字前缀，或者直接以单个或多个下划线开头的 `index`，例如 `__index.md`），目录项会优先链接到该文件，且该文件不会作为该子目录下的独立目录项展示
   - 自动收集 Markdown 中引用的本地图片并打包进 EPUB
   - 支持 Markdown 原生图片语法和 HTML `<img>` 标签

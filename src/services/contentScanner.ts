@@ -2,6 +2,7 @@ import { promises as fs } from 'node:fs'
 import path from 'node:path'
 
 import { METADATA_DIRNAME } from './folderMatcher'
+import { createIgnoreFilter, type IgnoreFilter, readT2eIgnore } from './t2eIgnore'
 
 const SUPPORTED_EXTENSIONS = new Set(['.md', '.txt'])
 
@@ -47,7 +48,7 @@ interface ParsedName {
  * @returns 包含树状节点和线性文件列表的扫描结果。
  */
 export async function scanContentTree(rootFolderPath: string): Promise<ContentScanResult> {
-  const nodes = await scanDirectory(rootFolderPath, '')
+  const nodes = await scanDirectory(rootFolderPath, '', createIgnoreFilter())
 
   return {
     nodes,
@@ -250,23 +251,36 @@ function isIndexDisplayName(displayName: string): boolean {
  *
  * @param dirPath 当前扫描目录绝对路径。
  * @param relativePath 相对于书籍根目录的相对路径。
+ * @param ignoreFilter 忽略过滤器。
  * @returns 当前目录下的有效内容节点。
  */
-async function scanDirectory(dirPath: string, relativePath: string): Promise<ContentNode[]> {
+async function scanDirectory(dirPath: string, relativePath: string, ignoreFilter: IgnoreFilter): Promise<ContentNode[]> {
+  // 读取当前目录的 .t2eignore 规则并合并到过滤器
+  const localRules = await readT2eIgnore(dirPath)
+  if (localRules.length > 0) {
+    ignoreFilter.add(localRules)
+  }
+
   const entries = await fs.readdir(dirPath, { withFileTypes: true })
   const nodes: ContentNode[] = []
 
   for (const entry of entries) {
+    const entryPath = path.join(dirPath, entry.name)
+    const entryRelativePath = relativePath ? path.join(relativePath, entry.name) : entry.name
+
+    // __t2e.data 最高优先级硬过滤，不受 .t2eignore 影响
     if (entry.name === METADATA_DIRNAME) {
       continue
     }
 
-    const entryPath = path.join(dirPath, entry.name)
-    const entryRelativePath = relativePath ? path.join(relativePath, entry.name) : entry.name
+    // .t2eignore 过滤
+    if (ignoreFilter.ignores(entryRelativePath)) {
+      continue
+    }
 
     if (entry.isDirectory()) {
       // 空目录不会进入结果，只有至少包含一个可用文件时才保留该目录节点。
-      const children = await scanDirectory(entryPath, entryRelativePath)
+      const children = await scanDirectory(entryPath, entryRelativePath, ignoreFilter)
       const indexFile = findDirectIndexFile(children)
       const firstFile = findFirstFile(children)
       if (!firstFile) {

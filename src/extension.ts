@@ -1,6 +1,7 @@
 import type { ExtensionContext } from 'vscode'
 
 import { registerConfigureDefaultAuthorCommand } from './commands/configureDefaultAuthor'
+import { registerCreateT2eIgnoreCommand } from './commands/createT2eIgnore'
 import { registerGenerateEpubCommand } from './commands/generateEpub'
 import { registerInitEpubCommand } from './commands/initEpub'
 
@@ -11,6 +12,7 @@ import { registerInitEpubCommand } from './commands/initEpub'
  */
 export function activate(context: ExtensionContext): void {
   context.subscriptions.push(registerConfigureDefaultAuthorCommand())
+  context.subscriptions.push(registerCreateT2eIgnoreCommand())
   context.subscriptions.push(registerGenerateEpubCommand())
   context.subscriptions.push(registerInitEpubCommand())
 }

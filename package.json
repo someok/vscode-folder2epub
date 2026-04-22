@@ -2,10 +2,18 @@
   "name": "vscode-folder2epub",
   "displayName": "Folder2EPUB",
   "description": "将符合条件的文件夹转换为 EPUB 的 VS Code 扩展",
-  "version": "1.0.7",
+  "version": "1.1.0",
   "publisher": "someok",
   "license": "MIT",
   "type": "commonjs",
+  "scripts": {
+    "compile": "tsc -p ./",
+    "generate:icon": "node scripts/generate-icon.mjs",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint .",
+    "vscode:prepublish": "npm run compile",
+    "package": "npm run compile && node scripts/package-vsix.mjs"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/someok/vscode-folder2epub"
@@ -41,6 +49,11 @@
         "category": "Folder2EPUB"
       },
       {
+        "command": "folder2epub.createT2eIgnore",
+        "title": "新增 .t2eignore",
+        "category": "Folder2EPUB"
+      },
+      {
         "command": "folder2epub.configureDefaultAuthor",
         "title": "配置当前 Workspace 默认作者",
         "category": "Folder2EPUB"
@@ -62,6 +75,11 @@
         {
           "command": "folder2epub.generateEpub",
           "when": "explorerResourceIsFolder && resourceScheme == file",
+          "group": "z_folder2epub@997"
+        },
+        {
+          "command": "folder2epub.createT2eIgnore",
+          "when": "explorerResourceIsFolder && resourceScheme == file",
           "group": "z_folder2epub@998"
         },
         {
@@ -72,15 +90,8 @@
       ]
     }
   },
-  "scripts": {
-    "compile": "tsc -p ./",
-    "generate:icon": "node scripts/generate-icon.mjs",
-    "watch": "tsc -watch -p ./",
-    "lint": "eslint .",
-    "vscode:prepublish": "npm run compile",
-    "package": "npm run compile && node scripts/package-vsix.mjs"
-  },
   "dependencies": {
+    "ignore": "^7.0.5",
     "jszip": "^3.10.1",
     "markdown-it": "^14.1.0",
     "yaml": "^2.8.3"
