@@ -1,5 +1,4 @@
 {
-  "extension.description": "A VS Code extension that converts folders into EPUB eBooks.",
   "command.generateEpub.title": "Generate EPUB",
   "command.initEpub.title": "Initialize EPUB",
   "command.createT2eIgnore.title": "Add .t2eignore",

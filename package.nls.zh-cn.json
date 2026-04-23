@@ -1,5 +1,4 @@
 {
-  "extension.description": "将符合条件的文件夹转换为 EPUB 的 VS Code 扩展",
   "command.generateEpub.title": "生成 epub",
   "command.initEpub.title": "初始化 epub",
   "command.createT2eIgnore.title": "新增 .t2eignore",
