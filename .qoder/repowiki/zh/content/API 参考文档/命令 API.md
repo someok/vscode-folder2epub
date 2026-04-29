@@ -46,7 +46,7 @@
 本文件系统性梳理 VS Code 扩展 Folder2EPUB 的命令 API，覆盖所有已注册命令的接口定义、调用方式、参数与返回值、错误处理、执行流程、权限与安全注意事项，以及调试与排障方法。读者可据此在 VS Code 的 Command Palette 或资源管理器右键菜单中准确使用这些命令。
 
 ## 项目结构
-- 命令注册集中在扩展入口文件中，按功能拆分为五个命令模块。
+- 命令注册集中在扩展入口文件中，按功能拆分为六个命令模块。
 - 命令通过 VS Code 的命令注册机制暴露，同时在资源管理器右键菜单中提供快捷入口。
 - 命令内部依赖若干服务模块，分别负责配置、元数据、内容扫描、输出目录解析、EPUB 打包、Markdown 合并等职责。
 
@@ -510,7 +510,7 @@ AUTH --> L10N
 - [README.md:131-135](file://README.md#L131-L135)
 
 ## 结论
-本扩展通过五个核心命令与一组配套服务，实现了从目录到 EPUB 和 Markdown 的完整工作流。命令接口简洁、执行流程清晰、错误处理一致，适合在 VS Code 中高效组织与导出电子书内容。新增的 generateMarkdown 命令为用户提供了更多样化的输出选项，特别适用于需要将内容导出为单一 Markdown 文件的场景。建议在使用前完成默认作者配置与必要的 .t2eignore 规则设置，以获得最佳体验。
+本扩展通过六个核心命令与一组配套服务，实现了从目录到 EPUB 和 Markdown 的完整工作流。命令接口简洁、执行流程清晰、错误处理一致，适合在 VS Code 中高效组织与导出电子书内容。新增的 generateMarkdown 命令为用户提供了更多样化的输出选项，特别适用于需要将内容导出为单一 Markdown 文件的场景。建议在使用前完成默认作者配置与必要的 .t2eignore 规则设置，以获得最佳体验。
 
 ## 附录
 
@@ -569,5 +569,5 @@ AUTH --> L10N
   - 提取 title 并返回清除 Frontmatter 后的内容
 
 **章节来源**
-- [markdownService.ts:10-180](file://src/services/markdownService.ts#L10-L180)
+- [markdownService.ts:10-238](file://src/services/markdownService.ts#L10-L238)
 - [markdownUtils.ts:1-26](file://src/utils/markdownUtils.ts#L1-L26)

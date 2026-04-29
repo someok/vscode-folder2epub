@@ -435,11 +435,17 @@ CmdMd-->>User : 显示生成结果
     - 行为：递归处理内容树，文件夹输出分组标题，文件输出标题与内容，处理 index 文件。
     - 返回：处理的文件数量。
   - readFileContent(file, parentHeadingLevel): Promise<{ title: string, body: string }>
-    - 行为：读取单个文件内容，处理 frontmatter，过滤图片，调整子标题层级，清理多余空行。
+    - 输入：文件节点、父级标题层级。
+    - 行为：读取单个文件内容，处理 frontmatter，过滤图片，调整子标题层级，清理多余空行。**更新**：参数从 shouldAdjustHeadings 改为 parentHeadingLevel，提供更精确的层级控制。
     - 返回：章节标题和处理后的正文。
   - adjustMarkdownHeadings(content, offset): string
-    - 行为：调整 Markdown 内容中的标题层级，跳过 fenced code block 内的行。
+    - 输入：Markdown 内容、层级偏移量。
+    - 行为：调整 Markdown 内容中的标题层级，跳过 fenced code block 内的行。**更新**：现在使用 parentHeadingLevel 作为偏移量，支持更灵活的层级调整。
     - 返回：调整后的内容。
+  - **新增** normalizeMarkdownHeadings(content): string
+    - 输入：原始 Markdown 内容。
+    - 行为：将 Markdown 内容中的标题层级规范化，以内容中出现的最小标题层级作为基准，统一左移到从 # 开始。会跳过 fenced code block 内的行。
+    - 返回：规范化后的内容。
 - 错误处理
   - 文件读取失败时抛错。
   - 目录创建失败时抛错。
@@ -447,12 +453,19 @@ CmdMd-->>User : 显示生成结果
   - 线性 O(N) 文件读取与内容处理。
   - 建议：对大文件进行分块处理，避免内存占用过高。
 
+**更新** 标题层级处理逻辑增强
+- **新增 normalizeMarkdownHeadings 函数**：提供更智能的标题层级规范化，能够识别内容中出现的最小标题层级并统一基准。
+- **参数变更**：readFileContent 函数参数从 shouldAdjustHeadings(boolean) 改为 parentHeadingLevel(number)，支持更精确的层级偏移控制。
+- **处理流程优化**：先规范化标题层级，再根据父级标题层级进行整体下移，避免标题层级冲突。
+
 **章节来源**
 - [src/services/markdownService.ts:10-19](file://src/services/markdownService.ts#L10-L19)
 - [src/services/markdownService.ts:30-54](file://src/services/markdownService.ts#L30-L54)
 - [src/services/markdownService.ts:65-110](file://src/services/markdownService.ts#L65-L110)
 - [src/services/markdownService.ts:119-149](file://src/services/markdownService.ts#L119-L149)
 - [src/services/markdownService.ts:158-179](file://src/services/markdownService.ts#L158-L179)
+- [src/services/markdownService.ts:163-207](file://src/services/markdownService.ts#L163-L207)
+- [src/services/markdownService.ts:216-237](file://src/services/markdownService.ts#L216-L237)
 
 ### markdownUtils 工具函数 API
 - 核心方法
@@ -540,8 +553,9 @@ SVC_CONF --> SVC_L10N
   - 对大图片进行预压缩或外部托管，降低 EPUB 体积。
 - Markdown 处理
   - 使用正则表达式进行图片过滤，注意性能影响。
-  - 标题层级调整时跳过 fenced code block，避免不必要的处理。
+  - **更新** 标题层级处理时跳过 fenced code block，避免不必要的处理。
   - 对大文件进行分块处理，避免内存占用过高。
+  - **新增** normalizeMarkdownHeadings 函数优化了标题层级规范化算法，提高处理效率。
 - 目录遍历
   - outputResolver 向上查找配置时，尽量将 __epub.yml 放在靠近根的位置，减少层级。
 - 错误与回退
@@ -555,6 +569,7 @@ SVC_CONF --> SVC_L10N
   - "未打开工作区"：配置默认作者需在工作区内进行。
   - "Markdown 文件读取失败"：检查文件权限和编码格式。
   - "目录创建失败"：检查输出路径权限和磁盘空间。
+  - **新增** "标题层级异常"：检查 Markdown 文件中的标题层级是否规范，normalizeMarkdownHeadings 函数会自动处理但可能与预期不符。
 - 错误消息统一
   - 使用 toErrorMessage 将错误转换为用户可读文本，便于在 UI 中展示。
 - 日志与诊断
@@ -569,7 +584,7 @@ SVC_CONF --> SVC_L10N
 - [src/services/errorMessage.ts:9-15](file://src/services/errorMessage.ts#L9-L15)
 
 ## 结论
-本服务层 API 设计清晰、职责单一、接口稳定，能够满足从目录扫描、元数据读取、内容渲染到 EPUB 打包以及 Markdown 合并的全链路需求。新增的 markdownService 服务为用户提供了将文件夹内容合并为单个 Markdown 文件的能力，丰富了扩展的功能矩阵。通过合理的错误处理与性能优化建议，可在 VS Code 环境中高效地将本地文件夹转换为高质量的 EPUB 电子书和 Markdown 文档。建议在实际使用中结合 .t2eignore 与 __epub.yml 进行灵活配置，并在大项目中关注 I/O 与渲染性能瓶颈。
+本服务层 API 设计清晰、职责单一、接口稳定，能够满足从目录扫描、元数据读取、内容渲染到 EPUB 打包以及 Markdown 合并的全链路需求。新增的 markdownService 服务为用户提供了将文件夹内容合并为单个 Markdown 文件的能力，丰富了扩展的功能矩阵。**更新** 最新的标题层级处理增强功能通过 normalizeMarkdownHeadings 函数提供了更智能的标题规范化和层级调整能力，解决了复杂的嵌套标题层级问题。通过合理的错误处理与性能优化建议，可在 VS Code 环境中高效地将本地文件夹转换为高质量的 EPUB 电子书和 Markdown 文档。建议在实际使用中结合 .t2eignore 与 __epub.yml 进行灵活配置，并在大项目中关注 I/O 与渲染性能瓶颈。
 
 ## 附录
 - 初始化与配置流程
@@ -581,8 +596,13 @@ SVC_CONF --> SVC_L10N
 - Markdown 处理特性
   - 支持 YAML frontmatter 解析，自动提取标题。
   - 自动过滤 Markdown 图片和 HTML img 标签。
-  - 智能调整标题层级，避免与外层标题冲突。
+  - **更新** 智能调整标题层级，先规范化再偏移，避免与外层标题冲突。
   - 清理多余空行，保持内容整洁。
+  - **新增** 支持 fenced code block 内容的智能跳过处理。
+- **新增** 标题层级处理增强
+  - **normalizeMarkdownHeadings**：智能识别并规范化最小标题层级，统一基准。
+  - **parentHeadingLevel 参数**：提供精确的父级标题层级控制，支持灵活的层级偏移。
+  - **双阶段处理**：先规范化后偏移，确保标题层级的一致性和正确性。
 
 **章节来源**
 - [src/commands/initEpub.ts:19-61](file://src/commands/initEpub.ts#L19-L61)
@@ -591,3 +611,5 @@ SVC_CONF --> SVC_L10N
 - [package.json:43-96](file://package.json#L43-L96)
 - [src/commands/generateMarkdown.ts:17-74](file://src/commands/generateMarkdown.ts#L17-L74)
 - [src/services/markdownService.ts:30-54](file://src/services/markdownService.ts#L30-L54)
+- [src/services/markdownService.ts:163-207](file://src/services/markdownService.ts#L163-L207)
+- [src/services/markdownService.ts:216-237](file://src/services/markdownService.ts#L216-L237)

@@ -9,6 +9,7 @@ export default antfu(
     ignores: [
       '**/TASK.md',
       'example/**',
+      '.qoder/**',
     ],
   },
   {
