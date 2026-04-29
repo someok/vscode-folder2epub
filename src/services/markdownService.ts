@@ -96,7 +96,7 @@ async function processNodes(
 
     // 若文件夹有 index 文件，将其内容放在分组标题下，不额外输出章节标题
     if (node.indexFile) {
-      const { body } = await readFileContent(node.indexFile, headingLevel)
+      const { body } = await readFileContent(node.indexFile, headingLevel, true)
       if (body) {
         lines.push(body)
         lines.push('')
@@ -119,6 +119,7 @@ async function processNodes(
 async function readFileContent(
   file: ContentFileNode,
   parentHeadingLevel: number,
+  stripTopHeading: boolean = false,
 ): Promise<{ title: string, body: string }> {
   const rawText = await fs.readFile(file.fsPath, 'utf8')
   let title = file.displayName
@@ -141,6 +142,10 @@ async function readFileContent(
   if (file.extension === '.md') {
     // 先规范化：无论原文从 ## 还是 ### 开头，统一左移到从 # 起
     content = normalizeMarkdownHeadings(content)
+    // 对于 index 文件，去掉内容中的最高层级标题，因为 index 内容直接附加在文件夹标题下
+    if (stripTopHeading) {
+      content = stripTopMarkdownHeading(content)
+    }
     // 再按章节层级整体下移
     if (parentHeadingLevel > 0) {
       content = adjustMarkdownHeadings(content, parentHeadingLevel)
@@ -151,6 +156,27 @@ async function readFileContent(
   content = content.replace(/\n{3,}/g, '\n\n').trim()
 
   return { title, body: content }
+}
+
+/**
+ * 去掉 Markdown 内容中的最高层级标题（第一个非空行且匹配标题格式）。
+ *
+ * @param content Markdown 内容。
+ * @returns 去掉最高层级标题后的内容。
+ */
+function stripTopMarkdownHeading(content: string): string {
+  const lines = content.split('\n')
+  let i = 0
+  while (i < lines.length && lines[i].trim() === '') {
+    i++
+  }
+  if (i < lines.length && /^#{1,6}\s/.test(lines[i])) {
+    i++
+    while (i < lines.length && lines[i].trim() === '') {
+      i++
+    }
+  }
+  return lines.slice(i).join('\n')
 }
 
 /**

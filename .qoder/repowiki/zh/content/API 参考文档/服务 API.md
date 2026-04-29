@@ -457,6 +457,7 @@ CmdMd-->>User : 显示生成结果
 - **新增 normalizeMarkdownHeadings 函数**：提供更智能的标题层级规范化，能够识别内容中出现的最小标题层级并统一基准。
 - **参数变更**：readFileContent 函数参数从 shouldAdjustHeadings(boolean) 改为 parentHeadingLevel(number)，支持更精确的层级偏移控制。
 - **处理流程优化**：先规范化标题层级，再根据父级标题层级进行整体下移，避免标题层级冲突。
+- **代码修复**：修正了 normalizeMarkdownHeadings 函数中的语法错误，删除了多余的闭合花括号。
 
 **章节来源**
 - [src/services/markdownService.ts:10-19](file://src/services/markdownService.ts#L10-L19)
@@ -556,6 +557,7 @@ SVC_CONF --> SVC_L10N
   - **更新** 标题层级处理时跳过 fenced code block，避免不必要的处理。
   - 对大文件进行分块处理，避免内存占用过高。
   - **新增** normalizeMarkdownHeadings 函数优化了标题层级规范化算法，提高处理效率。
+  - **代码修复** 修正了标题层级处理函数中的语法错误，提升了代码稳定性。
 - 目录遍历
   - outputResolver 向上查找配置时，尽量将 __epub.yml 放在靠近根的位置，减少层级。
 - 错误与回退
@@ -570,6 +572,7 @@ SVC_CONF --> SVC_L10N
   - "Markdown 文件读取失败"：检查文件权限和编码格式。
   - "目录创建失败"：检查输出路径权限和磁盘空间。
   - **新增** "标题层级异常"：检查 Markdown 文件中的标题层级是否规范，normalizeMarkdownHeadings 函数会自动处理但可能与预期不符。
+  - **代码修复** "语法错误"：修正了 normalizeMarkdownHeadings 函数中的多余闭合花括号，避免编译错误。
 - 错误消息统一
   - 使用 toErrorMessage 将错误转换为用户可读文本，便于在 UI 中展示。
 - 日志与诊断
@@ -584,7 +587,7 @@ SVC_CONF --> SVC_L10N
 - [src/services/errorMessage.ts:9-15](file://src/services/errorMessage.ts#L9-L15)
 
 ## 结论
-本服务层 API 设计清晰、职责单一、接口稳定，能够满足从目录扫描、元数据读取、内容渲染到 EPUB 打包以及 Markdown 合并的全链路需求。新增的 markdownService 服务为用户提供了将文件夹内容合并为单个 Markdown 文件的能力，丰富了扩展的功能矩阵。**更新** 最新的标题层级处理增强功能通过 normalizeMarkdownHeadings 函数提供了更智能的标题规范化和层级调整能力，解决了复杂的嵌套标题层级问题。通过合理的错误处理与性能优化建议，可在 VS Code 环境中高效地将本地文件夹转换为高质量的 EPUB 电子书和 Markdown 文档。建议在实际使用中结合 .t2eignore 与 __epub.yml 进行灵活配置，并在大项目中关注 I/O 与渲染性能瓶颈。
+本服务层 API 设计清晰、职责单一、接口稳定，能够满足从目录扫描、元数据读取、内容渲染到 EPUB 打包以及 Markdown 合并的全链路需求。新增的 markdownService 服务为用户提供了将文件夹内容合并为单个 Markdown 文件的能力，丰富了扩展的功能矩阵。**更新** 最新的标题层级处理增强功能通过 normalizeMarkdownHeadings 函数提供了更智能的标题规范化和层级调整能力，解决了复杂的嵌套标题层级问题。**代码修复** 修正了标题层级处理函数中的语法错误，提升了代码的稳定性和可靠性。通过合理的错误处理与性能优化建议，可在 VS Code 环境中高效地将本地文件夹转换为高质量的 EPUB 电子书和 Markdown 文档。建议在实际使用中结合 .t2eignore 与 __epub.yml 进行灵活配置，并在大项目中关注 I/O 与渲染性能瓶颈。
 
 ## 附录
 - 初始化与配置流程
@@ -599,10 +602,12 @@ SVC_CONF --> SVC_L10N
   - **更新** 智能调整标题层级，先规范化再偏移，避免与外层标题冲突。
   - 清理多余空行，保持内容整洁。
   - **新增** 支持 fenced code block 内容的智能跳过处理。
+  - **代码修复** 修正了标题层级处理函数中的语法错误，提升了代码质量。
 - **新增** 标题层级处理增强
   - **normalizeMarkdownHeadings**：智能识别并规范化最小标题层级，统一基准。
   - **parentHeadingLevel 参数**：提供精确的父级标题层级控制，支持灵活的层级偏移。
   - **双阶段处理**：先规范化后偏移，确保标题层级的一致性和正确性。
+  - **语法修复**：修正了 normalizeMarkdownHeadings 函数中的多余闭合花括号，避免编译错误。
 
 **章节来源**
 - [src/commands/initEpub.ts:19-61](file://src/commands/initEpub.ts#L19-L61)

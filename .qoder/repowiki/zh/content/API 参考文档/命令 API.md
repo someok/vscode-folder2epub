@@ -567,6 +567,10 @@ AUTH --> L10N
 - parseMarkdownFrontmatter 函数
   - 解析 Markdown 文件开头的 YAML Frontmatter
   - 提取 title 并返回清除 Frontmatter 后的内容
+- 标题层级处理函数
+  - normalizeMarkdownHeadings：将 Markdown 内容中的标题层级规范化，统一从 # 开始
+  - adjustMarkdownHeadings：根据章节层级调整内容中的子标题层级，避免与外层标题冲突
+  - 两个函数都跳过 fenced code block 内的行，确保代码块不受影响
 
 **章节来源**
 - [markdownService.ts:10-238](file://src/services/markdownService.ts#L10-L238)
