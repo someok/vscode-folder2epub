@@ -3,6 +3,7 @@
   "command.initEpub.title": "Initialize EPUB",
   "command.createT2eIgnore.title": "Add .t2eignore",
   "command.configureDefaultAuthor.title": "Configure Default Author for Workspace",
+  "command.generateMarkdown.title": "Generate Merged Markdown",
   "config.title": "Folder2EPUB",
   "config.defaultAuthor.description": "Default author written to `__t2e.data/metadata.yml` during initialization for the current Workspace."
 }

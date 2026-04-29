@@ -11,6 +11,7 @@
 - 通过 Command Palette 配置当前 Workspace 默认作者
 - 对目标目录快速初始化 `__t2e.data/metadata.yml`
 - 基于目录内容生成 EPUB 3 文件
+- 将目录下的 Markdown、TXT 合并为单个 Markdown 文件
 - 支持 Markdown、TXT、Markdown 图片和 HTML `<img>`
 - 支持按数字前缀对章节和子目录排序
 - 支持通过父级 `__epub.yml` 配置输出目录
@@ -44,6 +45,13 @@
   - 当 `metadata.yml` 配置了 `cover` 时，从 `__t2e.data/` 读取封面文件，缺失时直接报错
   - 生成 EPUB 3 文件
   - 根据父级 `__epub.yml` 的 `saveTo` 解析输出目录，支持使用 `~` 指向当前用户目录
+- `生成合并 Markdown`
+  - 校验 `__t2e.data/metadata.yml`
+  - 递归扫描目录中的 `.md` / `.txt`，按数字前缀排序
+  - 合并为单个 `.md` 文件，弹出保存对话框供用户选择输出位置
+  - 默认文件名为 `metadata.yml` 中的 `title` + `.md`
+  - 根目录文件生成 `##` 标题，子目录层级递增，最多支持 `######`
+  - 自动过滤 Markdown 图片语法 `![]()`、HTML `<img>` 标签和 YAML frontmatter
 
 ## 约定
 

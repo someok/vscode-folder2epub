@@ -61,6 +61,11 @@
         "command": "folder2epub.configureDefaultAuthor",
         "title": "%command.configureDefaultAuthor.title%",
         "category": "Folder2EPUB"
+      },
+      {
+        "command": "folder2epub.generateMarkdown",
+        "title": "%command.generateMarkdown.title%",
+        "category": "Folder2EPUB"
       }
     ],
     "configuration": {
@@ -78,6 +83,11 @@
       "explorer/context": [
         {
           "command": "folder2epub.generateEpub",
+          "when": "explorerResourceIsFolder && resourceScheme == file",
+          "group": "z_folder2epub@996"
+        },
+        {
+          "command": "folder2epub.generateMarkdown",
           "when": "explorerResourceIsFolder && resourceScheme == file",
           "group": "z_folder2epub@997"
         },

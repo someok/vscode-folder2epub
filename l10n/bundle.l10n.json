@@ -45,5 +45,10 @@
   "Markdown image is outside the current directory scope: {0} (file: {1})": "Markdown image is outside the current directory scope: {0} (file: {1})",
   "{0}: {1} (file: {2})": "{0}: {1} (file: {2})",
   "Cover": "Cover",
-  "Table of Contents": "Table of Contents"
+  "Table of Contents": "Table of Contents",
+  "Save merged Markdown": "Save merged Markdown",
+  "Markdown generated: {0}": "Markdown generated: {0}",
+  "Failed to generate Markdown: {0}": "Failed to generate Markdown: {0}",
+  "Select": "Select",
+  "Select a directory to merge into Markdown": "Select a directory to merge into Markdown"
 }

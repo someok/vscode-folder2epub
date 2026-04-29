@@ -45,5 +45,10 @@
   "Markdown image is outside the current directory scope: {0} (file: {1})": "Markdown 图片超出当前目录范围：{0}（文件：{1}）",
   "{0}: {1} (file: {2})": "{0}：{1}（文件：{2}）",
   "Cover": "封面",
-  "Table of Contents": "目录"
+  "Table of Contents": "目录",
+  "Save merged Markdown": "保存合并 Markdown",
+  "Markdown generated: {0}": "Markdown 已生成：{0}",
+  "Failed to generate Markdown: {0}": "生成 Markdown 失败：{0}",
+  "Select": "选择",
+  "Select a directory to merge into Markdown": "选择要合并为 Markdown 的目录"
 }
