@@ -61,7 +61,7 @@ export function registerGenerateMarkdownCommand(): vscode.Disposable {
 
       const result = await buildMarkdown({
         metadata,
-        nodes: content.nodes,
+        content,
         outputFilePath: saveUri.fsPath,
       })
 

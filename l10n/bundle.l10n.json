@@ -50,5 +50,6 @@
   "Markdown generated: {0}": "Markdown generated: {0}",
   "Failed to generate Markdown: {0}": "Failed to generate Markdown: {0}",
   "Select": "Select",
-  "Select a directory to merge into Markdown": "Select a directory to merge into Markdown"
+  "Select a directory to merge into Markdown": "Select a directory to merge into Markdown",
+  "Author: {0}": "Author: {0}"
 }

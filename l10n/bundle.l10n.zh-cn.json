@@ -50,5 +50,6 @@
   "Markdown generated: {0}": "Markdown 已生成：{0}",
   "Failed to generate Markdown: {0}": "生成 Markdown 失败：{0}",
   "Select": "选择",
-  "Select a directory to merge into Markdown": "选择要合并为 Markdown 的目录"
+  "Select a directory to merge into Markdown": "选择要合并为 Markdown 的目录",
+  "Author: {0}": "作者：{0}"
 }
