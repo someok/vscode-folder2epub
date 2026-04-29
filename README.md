@@ -60,7 +60,7 @@ version: 1.0.0
 
 支持的内容源：
 
-- `.md`
+- `.md`（支持 YAML frontmatter，若包含 `title` 字段则优先作为章节标题；frontmatter 块在渲染时自动清除，不会出现在正文中）
 - `.txt`
 
 当前 Workspace 作者配置方式：

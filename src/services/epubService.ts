@@ -8,9 +8,10 @@ import path from 'node:path'
 import JSZip from 'jszip'
 import MarkdownIt from 'markdown-it'
 
+import YAML from 'yaml'
+
 import { exists, METADATA_DIRNAME } from './folderMatcher'
 import { l10n } from './l10n'
-
 import { getBookAuthor, getBookDisplayTitle } from './metadata'
 
 const CONTAINER_XML = `<?xml version="1.0" encoding="UTF-8"?>
@@ -239,7 +240,7 @@ function buildNavEntries(
       }
 
       return {
-        title: node.displayName,
+        title: chapter.title,
         href: chapter.href,
         children: [],
       }
@@ -503,12 +504,16 @@ async function createChapters(
   for (const [index, file] of files.entries()) {
     const rawText = await fs.readFile(file.fsPath, 'utf8')
     let bodyHtml: string
+    let chapterTitle = file.displayName
 
     if (file.extension === '.md') {
-      // Markdown 需要先走 token 级图片重写，再交给 markdown-it 渲染成 XHTML。
+      const { title, content } = parseMarkdownFrontmatter(rawText)
+      if (title) {
+        chapterTitle = title
+      }
       bodyHtml = await renderMarkdownChapter(
         file,
-        rawText,
+        content,
         markdown,
         rootFolderPath,
         contentImagesBySourcePath,
@@ -527,8 +532,8 @@ async function createChapters(
       id: `chapter-${order}`,
       href: `text/chapter-${order}.xhtml`,
       sourcePath: file.fsPath,
-      title: file.displayName,
-      xhtml: createChapterDocument(file.displayName, bodyHtml, !file.isIndexFile),
+      title: chapterTitle,
+      xhtml: createChapterDocument(chapterTitle, bodyHtml, !file.isIndexFile),
     })
   }
 
@@ -648,6 +653,28 @@ function getMediaType(extension: string): string | undefined {
       return 'image/webp'
     default:
       return undefined
+  }
+}
+
+/**
+ * 解析 Markdown 文件开头的 YAML frontmatter，提取 title 并返回清除 frontmatter 后的内容。
+ *
+ * @param rawText Markdown 原始文本。
+ * @returns 提取的 title（若存在）和清除 frontmatter 后的内容。
+ */
+function parseMarkdownFrontmatter(rawText: string): { title?: string, content: string } {
+  const match = rawText.match(/^---[ \t]*\n([\s\S]*?)\n---[ \t]*(?:\n|$)/)
+  if (!match) {
+    return { content: rawText }
+  }
+
+  try {
+    const frontmatter = YAML.parse(match[1])
+    const title = typeof frontmatter?.title === 'string' ? frontmatter.title.trim() : undefined
+    return { title, content: rawText.slice(match[0].length) }
+  }
+  catch {
+    return { content: rawText }
   }
 }
 
