@@ -79,7 +79,7 @@ async function processNodes(
     const headingPrefix = '#'.repeat(headingLevel)
 
     if (node.kind === 'file') {
-      const { title, body } = await readFileContent(node, headingLevel === 2)
+      const { title, body } = await readFileContent(node, headingLevel)
       lines.push(`${headingPrefix} ${title}`)
       lines.push('')
       if (body) {
@@ -96,7 +96,7 @@ async function processNodes(
 
     // 若文件夹有 index 文件，将其内容放在分组标题下，不额外输出章节标题
     if (node.indexFile) {
-      const { body } = await readFileContent(node.indexFile, headingLevel + 1 === 2)
+      const { body } = await readFileContent(node.indexFile, headingLevel)
       if (body) {
         lines.push(body)
         lines.push('')
@@ -110,15 +110,15 @@ async function processNodes(
 }
 
 /**
- * 读取单个文件内容，处理 frontmatter、过滤图片并调整子标题层级。
+ * 读取单个文件内容，处理 frontmatter、过滤图片并按当前章节层级调整子标题层级。
  *
  * @param file 文件节点。
- * @param shouldAdjustHeadings 是否需要调整内容中的标题层级。
+ * @param parentHeadingLevel 该文件在输出中的章节标题层级（index 文件使用所属文件夹的层级）。
  * @returns 章节标题和处理后的正文。
  */
 async function readFileContent(
   file: ContentFileNode,
-  shouldAdjustHeadings: boolean,
+  parentHeadingLevel: number,
 ): Promise<{ title: string, body: string }> {
   const rawText = await fs.readFile(file.fsPath, 'utf8')
   let title = file.displayName
@@ -137,9 +137,9 @@ async function readFileContent(
     .replace(MARKDOWN_IMAGE_PATTERN, '')
     .replace(HTML_IMAGE_TAG_PATTERN, '')
 
-  // 根目录层级文件调整内容中的子标题层级
-  if (shouldAdjustHeadings) {
-    content = adjustMarkdownHeadings(content, 2)
+  // 根据所属章节层级调整内容中的子标题层级，避免与外层标题冲突
+  if (file.extension === '.md' && parentHeadingLevel > 0) {
+    content = adjustMarkdownHeadings(content, parentHeadingLevel)
   }
 
   // 清理多余空行
