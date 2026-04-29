@@ -138,14 +138,72 @@ async function readFileContent(
     .replace(HTML_IMAGE_TAG_PATTERN, '')
 
   // 根据所属章节层级调整内容中的子标题层级，避免与外层标题冲突
-  if (file.extension === '.md' && parentHeadingLevel > 0) {
-    content = adjustMarkdownHeadings(content, parentHeadingLevel)
+  if (file.extension === '.md') {
+    // 先规范化：无论原文从 ## 还是 ### 开头，统一左移到从 # 起
+    content = normalizeMarkdownHeadings(content)
+    // 再按章节层级整体下移
+    if (parentHeadingLevel > 0) {
+      content = adjustMarkdownHeadings(content, parentHeadingLevel)
+    }
   }
 
   // 清理多余空行
   content = content.replace(/\n{3,}/g, '\n\n').trim()
 
   return { title, body: content }
+}
+
+/**
+ * 将 Markdown 内容中的标题层级规范化：以内容中出现的最小标题层级作为基准，统一左移到从 # 开始。
+ * 会跳过 fenced code block 内的行。
+ *
+ * @param content 原始 Markdown 内容。
+ * @returns 规范化后的内容。
+ */
+function normalizeMarkdownHeadings(content: string): string {
+  let inCodeBlock = false
+  let minLevel = Number.POSITIVE_INFINITY
+
+  for (const line of content.split('\n')) {
+    const trimmed = line.trimStart()
+    if (trimmed.startsWith('```')) {
+      inCodeBlock = !inCodeBlock
+      continue
+    }
+    if (inCodeBlock) {
+      continue
+    }
+    const match = line.match(/^(#{1,6})\s/)
+    if (match) {
+      minLevel = Math.min(minLevel, match[1].length)
+    }
+  }
+
+  if (!Number.isFinite(minLevel) || minLevel <= 1) {
+    return content
+  }
+
+  const shift = minLevel - 1
+  inCodeBlock = false
+  return content
+    .split('\n')
+    .map((line) => {
+      const trimmed = line.trimStart()
+      if (trimmed.startsWith('```')) {
+        inCodeBlock = !inCodeBlock
+        return line
+      }
+      if (inCodeBlock) {
+        return line
+      }
+      const match = line.match(/^(#{1,6})(\s.*)$/)
+      if (!match) {
+        return line
+      }
+      const newLevel = Math.max(match[1].length - shift, 1)
+      return '#'.repeat(newLevel) + match[2]
+    })
+    .join('\n')
 }
 
 /**
