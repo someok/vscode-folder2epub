@@ -434,17 +434,21 @@ CmdMd-->>User : 显示生成结果
   - processNodes(nodes, lines, depth, hiddenFilePath): Promise<number>
     - 行为：递归处理内容树，文件夹输出分组标题，文件输出标题与内容，处理 index 文件。
     - 返回：处理的文件数量。
-  - readFileContent(file, parentHeadingLevel): Promise<{ title: string, body: string }>
-    - 输入：文件节点、父级标题层级。
-    - 行为：读取单个文件内容，处理 frontmatter，过滤图片，调整子标题层级，清理多余空行。**更新**：参数从 shouldAdjustHeadings 改为 parentHeadingLevel，提供更精确的层级控制。
+  - readFileContent(file, parentHeadingLevel, stripTopHeading): Promise<{ title: string, body: string }>
+    - 输入：文件节点、父级标题层级、是否去除顶部标题。
+    - 行为：读取单个文件内容，处理 frontmatter，过滤图片，调整子标题层级，清理多余空行。**更新**：新增 stripTopHeading 参数，支持索引文件内容处理。
     - 返回：章节标题和处理后的正文。
   - adjustMarkdownHeadings(content, offset): string
     - 输入：Markdown 内容、层级偏移量。
     - 行为：调整 Markdown 内容中的标题层级，跳过 fenced code block 内的行。**更新**：现在使用 parentHeadingLevel 作为偏移量，支持更灵活的层级调整。
     - 返回：调整后的内容。
-  - **新增** normalizeMarkdownHeadings(content): string
+  - **新增** stripTopMarkdownHeading(content): string
     - 输入：原始 Markdown 内容。
-    - 行为：将 Markdown 内容中的标题层级规范化，以内容中出现的最小标题层级作为基准，统一左移到从 # 开始。会跳过 fenced code block 内的行。
+    - 行为：去掉内容中的最高层级标题（第一个非空行且匹配标题格式），用于索引文件内容处理，避免与父级标题冲突。
+    - 返回：去掉最高层级标题后的内容。
+  - **修复** normalizeMarkdownHeadings(content): string
+    - 输入：原始 Markdown 内容。
+    - 行为：将 Markdown 内容中的标题层级规范化，以内容中出现的最小标题层级作为基准，统一左移到从 # 开始。会跳过 fenced code block 内的行。**修复**：修正了函数末尾的语法错误，删除了多余的闭合花括号。
     - 返回：规范化后的内容。
 - 错误处理
   - 文件读取失败时抛错。
@@ -454,10 +458,11 @@ CmdMd-->>User : 显示生成结果
   - 建议：对大文件进行分块处理，避免内存占用过高。
 
 **更新** 标题层级处理逻辑增强
-- **新增 normalizeMarkdownHeadings 函数**：提供更智能的标题层级规范化，能够识别内容中出现的最小标题层级并统一基准。
-- **参数变更**：readFileContent 函数参数从 shouldAdjustHeadings(boolean) 改为 parentHeadingLevel(number)，支持更精确的层级偏移控制。
-- **处理流程优化**：先规范化标题层级，再根据父级标题层级进行整体下移，避免标题层级冲突。
-- **代码修复**：修正了 normalizeMarkdownHeadings 函数中的语法错误，删除了多余的闭合花括号。
+- **新增 stripTopMarkdownHeading 函数**：专门用于索引文件内容处理，去除内容中的最高层级标题，避免与父级文件夹标题产生冲突。
+- **修复 normalizeMarkdownHeadings 函数**：修正了函数末尾多余的闭合花括号语法错误，确保代码能够正常编译和运行。
+- **参数变更**：readFileContent 函数新增 stripTopHeading 参数，支持更精确的标题处理控制。
+- **处理流程优化**：先规范化标题层级，再根据父级标题层级进行整体下移，最后对索引文件内容进行顶部标题剥离，避免标题层级冲突。
+- **代码稳定性提升**：修复了多个语法错误，提高了代码质量和可维护性。
 
 **章节来源**
 - [src/services/markdownService.ts:10-19](file://src/services/markdownService.ts#L10-L19)
@@ -556,8 +561,8 @@ SVC_CONF --> SVC_L10N
   - 使用正则表达式进行图片过滤，注意性能影响。
   - **更新** 标题层级处理时跳过 fenced code block，避免不必要的处理。
   - 对大文件进行分块处理，避免内存占用过高。
-  - **新增** normalizeMarkdownHeadings 函数优化了标题层级规范化算法，提高处理效率。
-  - **代码修复** 修正了标题层级处理函数中的语法错误，提升了代码稳定性。
+  - **新增** stripTopMarkdownHeading 函数优化了索引文件内容处理，提高了处理效率。
+  - **修复** normalizeMarkdownHeadings 函数语法错误修复提升了代码稳定性，减少了潜在的运行时错误。
 - 目录遍历
   - outputResolver 向上查找配置时，尽量将 __epub.yml 放在靠近根的位置，减少层级。
 - 错误与回退
@@ -571,8 +576,8 @@ SVC_CONF --> SVC_L10N
   - "未打开工作区"：配置默认作者需在工作区内进行。
   - "Markdown 文件读取失败"：检查文件权限和编码格式。
   - "目录创建失败"：检查输出路径权限和磁盘空间。
-  - **新增** "标题层级异常"：检查 Markdown 文件中的标题层级是否规范，normalizeMarkdownHeadings 函数会自动处理但可能与预期不符。
-  - **代码修复** "语法错误"：修正了 normalizeMarkdownHeadings 函数中的多余闭合花括号，避免编译错误。
+  - **新增** "索引文件标题处理异常"：检查 Markdown 文件中的标题层级，stripTopMarkdownHeading 函数会自动处理但可能与预期不符。
+  - **修复** "语法错误导致编译失败"：修正了 normalizeMarkdownHeadings 函数中的多余闭合花括号，确保代码能够正常编译。
 - 错误消息统一
   - 使用 toErrorMessage 将错误转换为用户可读文本，便于在 UI 中展示。
 - 日志与诊断
@@ -587,7 +592,7 @@ SVC_CONF --> SVC_L10N
 - [src/services/errorMessage.ts:9-15](file://src/services/errorMessage.ts#L9-L15)
 
 ## 结论
-本服务层 API 设计清晰、职责单一、接口稳定，能够满足从目录扫描、元数据读取、内容渲染到 EPUB 打包以及 Markdown 合并的全链路需求。新增的 markdownService 服务为用户提供了将文件夹内容合并为单个 Markdown 文件的能力，丰富了扩展的功能矩阵。**更新** 最新的标题层级处理增强功能通过 normalizeMarkdownHeadings 函数提供了更智能的标题规范化和层级调整能力，解决了复杂的嵌套标题层级问题。**代码修复** 修正了标题层级处理函数中的语法错误，提升了代码的稳定性和可靠性。通过合理的错误处理与性能优化建议，可在 VS Code 环境中高效地将本地文件夹转换为高质量的 EPUB 电子书和 Markdown 文档。建议在实际使用中结合 .t2eignore 与 __epub.yml 进行灵活配置，并在大项目中关注 I/O 与渲染性能瓶颈。
+本服务层 API 设计清晰、职责单一、接口稳定，能够满足从目录扫描、元数据读取、内容渲染到 EPUB 打包以及 Markdown 合并的全链路需求。新增的 markdownService 服务为用户提供了将文件夹内容合并为单个 Markdown 文件的能力，丰富了扩展的功能矩阵。**更新** 最新的标题层级处理增强功能通过 stripTopMarkdownHeading 函数提供了更智能的索引文件内容处理能力和 normalizeMarkdownHeadings 函数的语法修复，解决了复杂的嵌套标题层级问题和编译错误。**代码修复** 修正了标题层级处理函数中的语法错误，提升了代码的稳定性和可靠性。通过合理的错误处理与性能优化建议，可在 VS Code 环境中高效地将本地文件夹转换为高质量的 EPUB 电子书和 Markdown 文档。建议在实际使用中结合 .t2eignore 与 __epub.yml 进行灵活配置，并在大项目中关注 I/O 与渲染性能瓶颈。
 
 ## 附录
 - 初始化与配置流程
@@ -600,12 +605,14 @@ SVC_CONF --> SVC_L10N
   - 支持 YAML frontmatter 解析，自动提取标题。
   - 自动过滤 Markdown 图片和 HTML img 标签。
   - **更新** 智能调整标题层级，先规范化再偏移，避免与外层标题冲突。
+  - **新增** 支持索引文件内容处理，stripTopMarkdownHeading 函数去除最高层级标题。
+  - **修复** 修正了标题层级处理函数中的语法错误，提升了代码质量。
   - 清理多余空行，保持内容整洁。
   - **新增** 支持 fenced code block 内容的智能跳过处理。
-  - **代码修复** 修正了标题层级处理函数中的语法错误，提升了代码质量。
+  - **代码修复** 修正了 normalizeMarkdownHeadings 函数中的语法错误，提升了代码稳定性。
 - **新增** 标题层级处理增强
-  - **normalizeMarkdownHeadings**：智能识别并规范化最小标题层级，统一基准。
-  - **parentHeadingLevel 参数**：提供精确的父级标题层级控制，支持灵活的层级偏移。
+  - **stripTopMarkdownHeading**：专门处理索引文件内容，去除最高层级标题，避免与父级标题冲突。
+  - **normalizeMarkdownHeadings**：智能识别并规范化最小标题层级，统一基准。**修复**：修正了函数末尾的语法错误。
   - **双阶段处理**：先规范化后偏移，确保标题层级的一致性和正确性。
   - **语法修复**：修正了 normalizeMarkdownHeadings 函数中的多余闭合花括号，避免编译错误。
 
