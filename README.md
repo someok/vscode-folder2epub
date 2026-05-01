@@ -63,6 +63,7 @@ titleSuffix: ''
 author: [当前 Workspace 默认作者；未配置则为空]
 description: ''
 cover: cover.jpg
+indexName: index
 version: 1.0.0
 ```
 
@@ -82,8 +83,8 @@ version: 1.0.0
 - 文件或文件夹名形如 `0120_章节名.md`
 - 数字前缀会参与排序
 - 目录和文件在去掉数字前缀后，使用剩余名称作为显示名
-- 子目录若存在名称为 `index` 的内容文件，则目录本身会优先跳转到该文件，并隐藏该文件对应的独立目录项
-- 作为目录入口使用的 `index` 章节页不会额外自动注入文件名 `h1`，以免与正文中的标题重复
+- 子目录若存在名称为 `index` 的内容文件（名称可通过 `metadata.yml` 的 `indexName` 字段配置，默认为 `index`），则目录本身会优先跳转到该文件，并隐藏该文件对应的独立目录项
+- 作为目录入口使用的 index 章节页不会额外自动注入文件名 `h1`，以免与正文中的标题重复
 - 父级 `__epub.yml` 的 `saveTo` 支持写成 `~` 或 `~/子目录`，会自动展开到当前用户目录
 
 ## 示例目录结构
@@ -114,7 +115,7 @@ book-demo/
 - `__t2e.data/cover.jpg` 是封面文件，对应 `metadata.yml` 中的 `cover`
 - 根目录下可以直接放 `.md` 和 `.txt`
 - 子目录下也可以继续放 `.md` 和 `.txt`
-- 子目录下如果存在 `index.md`、`index.txt` 或带数字前缀的 `index` 文件（如 `0000__index.md`），该子目录会优先跳转到这个文件，且它不会作为该子目录下的独立目录项展示
+- 子目录下如果存在名称为 `index`（可通过 `indexName` 自定义）的 `.md` 或 `.txt` 文件（支持数字前缀和下划线前缀，如 `0000__index.md`），该子目录会优先跳转到这个文件，且它不会作为该子目录下的独立目录项展示
 - Markdown 中引用的本地图片会按相对当前 `.md` 文件的路径解析
 - 带数字前缀的目录和文件会按数字排序
 
@@ -126,6 +127,7 @@ titleSuffix: 预览版
 author: i3166
 description: 这是一个用于测试的示例目录。
 cover: cover.jpg
+indexName: index
 version: 1.0.0
 ```
 

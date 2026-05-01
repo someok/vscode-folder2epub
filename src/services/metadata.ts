@@ -9,6 +9,7 @@ export interface EpubMetadata {
   author: string
   cover: string
   description: string
+  indexName: string
   title: string
   titleSuffix: string
   version: string
@@ -28,6 +29,7 @@ export function createDefaultMetadata(folderName: string, author: string): EpubM
     author,
     description: '',
     cover: 'cover.jpg',
+    indexName: 'index',
     version: '1.0.0',
   }
 }
@@ -54,6 +56,7 @@ export async function readMetadata(folderPath: string): Promise<EpubMetadata> {
     author: toStringValue(metadata.author),
     description: toStringValue(metadata.description),
     cover: toStringValue(metadata.cover),
+    indexName: toStringValue(metadata.indexName, 'index').trim() || 'index',
     version: toStringValue(metadata.version, '1.0.0'),
   }
 }

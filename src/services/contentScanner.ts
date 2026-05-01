@@ -48,8 +48,8 @@ interface ParsedName {
  * @param rootFolderPath 书籍根目录绝对路径。
  * @returns 包含树状节点和线性文件列表的扫描结果。
  */
-export async function scanContentTree(rootFolderPath: string): Promise<ContentScanResult> {
-  const nodes = await scanDirectory(rootFolderPath, '', createIgnoreFilter())
+export async function scanContentTree(rootFolderPath: string, indexName = 'index'): Promise<ContentScanResult> {
+  const nodes = await scanDirectory(rootFolderPath, '', createIgnoreFilter(), indexName)
 
   return {
     nodes,
@@ -243,8 +243,9 @@ function parseOrderedName(name: string, isFile: boolean): ParsedName {
  * @param displayName 去除排序前缀后的展示名。
  * @returns 若名称为 `index` 则返回 `true`。
  */
-function isIndexDisplayName(displayName: string): boolean {
-  return displayName.trim().toLowerCase() === 'index'
+function isIndexDisplayName(displayName: string, indexName: string): boolean {
+  const name = indexName.trim().toLowerCase() || 'index'
+  return displayName.trim().toLowerCase() === name
 }
 
 /**
@@ -255,7 +256,7 @@ function isIndexDisplayName(displayName: string): boolean {
  * @param ignoreFilter 忽略过滤器。
  * @returns 当前目录下的有效内容节点。
  */
-async function scanDirectory(dirPath: string, relativePath: string, ignoreFilter: IgnoreFilter): Promise<ContentNode[]> {
+async function scanDirectory(dirPath: string, relativePath: string, ignoreFilter: IgnoreFilter, indexName: string): Promise<ContentNode[]> {
   // 读取当前目录的 .t2eignore 规则并合并到过滤器
   const localRules = await readT2eIgnore(dirPath)
   if (localRules.length > 0) {
@@ -281,7 +282,7 @@ async function scanDirectory(dirPath: string, relativePath: string, ignoreFilter
 
     if (entry.isDirectory()) {
       // 空目录不会进入结果，只有至少包含一个可用文件时才保留该目录节点。
-      const children = await scanDirectory(entryPath, entryRelativePath, ignoreFilter)
+      const children = await scanDirectory(entryPath, entryRelativePath, ignoreFilter, indexName)
       const indexFile = findDirectIndexFile(children)
       const firstFile = findFirstFile(children)
       if (!firstFile) {
@@ -321,7 +322,7 @@ async function scanDirectory(dirPath: string, relativePath: string, ignoreFilter
       fsPath: entryPath,
       relativePath: entryRelativePath,
       extension: extension as '.md' | '.txt',
-      isIndexFile: isIndexDisplayName(ordered.displayName),
+      isIndexFile: isIndexDisplayName(ordered.displayName, indexName),
     })
   }
 

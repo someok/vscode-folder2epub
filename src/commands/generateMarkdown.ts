@@ -40,7 +40,7 @@ export function registerGenerateMarkdownCommand(): vscode.Disposable {
       }
 
       const metadata = await readMetadata(target.fsPath)
-      const content = await scanContentTree(target.fsPath)
+      const content = await scanContentTree(target.fsPath, metadata.indexName)
       if (!content.files.length) {
         throw new Error(l10n.t('No md/txt files available to generate EPUB in the current directory.'))
       }

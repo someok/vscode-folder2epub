@@ -137,3 +137,63 @@ test('上层目录没有直接 index 时，可回退到更深层子目录中的 
     assert.doesNotMatch(navXhtml, />index<\/a>/)
   })
 })
+
+test('配置自定义 indexName 后，所有匹配格式均被识别为 index 文件', async () => {
+  await withTempBook({
+    '1234_preface.md': '# 前言1',
+    '_preface.md': '# 前言2',
+    'preface.md': '# 前言3',
+    '_preface.txt': '前言4',
+    '0010_chapter1.md': '# 第一章',
+  }, async (rootDir) => {
+    const result = await scanContentTree(rootDir, 'preface')
+    const indexFiles = result.files.filter(f => f.isIndexFile)
+    assert.equal(indexFiles.length, 4)
+    for (const f of indexFiles) {
+      assert.equal(f.displayName, 'preface')
+    }
+    const normalFile = result.files.find(f => f.displayName === 'chapter1')
+    assert.ok(normalFile)
+    assert.equal(normalFile.isIndexFile, false)
+  })
+})
+
+test('配置自定义 indexName 后，原 index 文件不再被识别为 index 文件', async () => {
+  await withTempBook({
+    '_index.md': '# 原 index',
+    '_preface.md': '# 前言',
+    '0010_chapter1.md': '# 第一章',
+  }, async (rootDir) => {
+    const result = await scanContentTree(rootDir, 'preface')
+    const indexFile = result.files.find(f => f.displayName === 'index')
+    assert.ok(indexFile)
+    assert.equal(indexFile.isIndexFile, false)
+    const prefaceFile = result.files.find(f => f.displayName === 'preface')
+    assert.ok(prefaceFile)
+    assert.equal(prefaceFile.isIndexFile, true)
+  })
+})
+
+test('indexName 为空字符串时回退到默认 index 识别行为', async () => {
+  await withTempBook({
+    '_index.md': '# 首页',
+    '0010_chapter1.md': '# 第一章',
+  }, async (rootDir) => {
+    const result = await scanContentTree(rootDir, '')
+    const indexFile = result.files.find(f => f.displayName === 'index')
+    assert.ok(indexFile)
+    assert.equal(indexFile.isIndexFile, true)
+  })
+})
+
+test('indexName 匹配大小写不敏感', async () => {
+  await withTempBook({
+    '_index.md': '# 首页',
+    '0010_chapter1.md': '# 第一章',
+  }, async (rootDir) => {
+    const result = await scanContentTree(rootDir, 'INDEX')
+    const indexFile = result.files.find(f => f.displayName === 'index')
+    assert.ok(indexFile)
+    assert.equal(indexFile.isIndexFile, true)
+  })
+})

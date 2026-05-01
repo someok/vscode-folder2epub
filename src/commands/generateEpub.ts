@@ -37,7 +37,7 @@ export function registerGenerateEpubCommand(): vscode.Disposable {
           const metadata = await readMetadata(target.fsPath)
 
           progress.report({ message: l10n.t('Scanning directory content') })
-          const content = await scanContentTree(target.fsPath)
+          const content = await scanContentTree(target.fsPath, metadata.indexName)
           if (!content.files.length) {
             throw new Error(l10n.t('No md/txt files available to generate EPUB in the current directory.'))
           }
