@@ -1,0 +1,7 @@
+title: index-demo
+titleSuffix: 索引测试
+author: i3166
+description: 用于测试 indexName 配置的自定义索引名称功能
+cover: ''
+indexName: preface
+version: 1.0.0

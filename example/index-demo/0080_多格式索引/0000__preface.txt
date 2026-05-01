@@ -1,0 +1,6 @@
+TXT 格式序言
+
+此文件名为 `0000__preface.txt`，
+验证 TXT 格式文件也能被识别为 index 文件（匹配 `indexName: preface`）。
+
+此文件作为 "0080_多格式索引" 目录的入口。

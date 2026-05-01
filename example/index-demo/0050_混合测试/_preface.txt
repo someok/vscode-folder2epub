@@ -1,0 +1,8 @@
+这是下划线前缀 + preface 的 TXT 文件。
+
+文件名 `_preface.txt`。
+
+在 EPUB 中此文件也是 index 候选人，
+但 index 文件只取第一个匹配的（本目录中 `1234_preface.md` 排序更靠前）。
+
+此文件作为普通章节展示。
