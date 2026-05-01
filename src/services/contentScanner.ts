@@ -58,13 +58,22 @@ export async function scanContentTree(rootFolderPath: string, indexName = 'index
 }
 
 /**
- * 依据数字前缀优先、名称次之的规则排序节点。
+ * 依据 index 文件优先、数字前缀次之、名称最后的规则排序节点。
  *
  * @param left 左侧节点。
  * @param right 右侧节点。
  * @returns 排序比较结果。
  */
 function compareNodes(left: ContentNode, right: ContentNode): number {
+  const leftIsIndex = left.kind === 'file' && left.isIndexFile
+  const rightIsIndex = right.kind === 'file' && right.isIndexFile
+  if (leftIsIndex && !rightIsIndex) {
+    return -1
+  }
+  if (!leftIsIndex && rightIsIndex) {
+    return 1
+  }
+
   if (left.order !== null && right.order !== null) {
     return left.order - right.order || compareByName(left, right)
   }
