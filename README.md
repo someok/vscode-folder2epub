@@ -23,8 +23,10 @@
 - TypeScript 扩展骨架
 - 资源管理器目录右键菜单
   - `生成 epub`
-  - `初始化 epub`
-  - `新增 .t2eignore`
+  - `Folder2EPUB`
+    - `生成合并 Markdown`
+    - `新增 .t2eignore`
+    - `初始化 epub`
 - `初始化 epub`
   - 支持通过 Command Palette 配置当前 Workspace 默认作者
   - 未配置当前 Workspace 作者时，初始化会先提示用户
